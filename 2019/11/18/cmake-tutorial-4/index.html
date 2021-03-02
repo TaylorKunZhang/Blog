@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-taylor.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-taylor.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-taylor.png?v=7.4.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"hide","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="CMake 是一种跨平台的免费开源软件工具，用于使用与编译器无关的方法来管理软件的构建过程。在 Android Studio 上进行 NDK 开发默认就是使用 CMake 管理 C/C++ 代码，因此在学习 NDK 之前最好对 CMake 有一定的了解。">
+<meta name="keywords" content="cmake-tutorial">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CMake使用教程(四)">
+<meta property="og:url" content="http://yoursite.com/2019/11/18/cmake-tutorial-4/index.html">
+<meta property="og:site_name" content="张坤的笔记">
+<meta property="og:description" content="CMake 是一种跨平台的免费开源软件工具，用于使用与编译器无关的方法来管理软件的构建过程。在 Android Studio 上进行 NDK 开发默认就是使用 CMake 管理 C/C++ 代码，因此在学习 NDK 之前最好对 CMake 有一定的了解。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-02-23T04:34:46.351Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CMake使用教程(四)">
+<meta name="twitter:description" content="CMake 是一种跨平台的免费开源软件工具，用于使用与编译器无关的方法来管理软件的构建过程。在 Android Studio 上进行 NDK 开发默认就是使用 CMake 管理 C/C++ 代码，因此在学习 NDK 之前最好对 CMake 有一定的了解。">
+  <link rel="canonical" href="http://yoursite.com/2019/11/18/cmake-tutorial-4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>CMake使用教程(四) | 张坤的笔记</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张坤的笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/TaylorKunZhang" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/18/cmake-tutorial-4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张坤">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张坤的笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">CMake使用教程(四)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-18 17:46:31" itemprop="dateCreated datePublished" datetime="2019-11-18T17:46:31+08:00">2019-11-18</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 12:34:46" itemprop="dateModified" datetime="2021-02-23T12:34:46+08:00">2021-02-23</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/CMake/" itemprop="url" rel="index"><span itemprop="name">CMake</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>CMake</code> 是一种跨平台的免费开源软件工具，用于使用与编译器无关的方法来管理软件的构建过程。在 <code>Android Studio</code> 上进行 <code>NDK</code> 开发默认就是使用 <code>CMake</code> 管理 <code>C/C++</code> 代码，因此在学习 <code>NDK</code> 之前最好对 <code>CMake</code> 有一定的了解。</p>
+<a id="more"></a>
+<p>本文主要以翻译 <code>CMake</code> 的<a href="https://cmake.org/cmake/help/v3.16/guide/tutorial/index.html" target="_blank" rel="noopener">官方教程文档</a>为主，加上自己的一些理解，该教程涵盖了 <code>CMake</code> 的常见使用场景。由于能力有限，翻译部分采用机翻+人工校对，翻译有问题的地方，说声抱歉。</p>
+<p>开发环境：</p>
+<ul>
+<li>macOS 10.14.6</li>
+<li>CMake 3.15.1</li>
+<li>CLion 2018.2.4</li>
+</ul>
+<h2 id="混合静态和共享">混合静态和共享</h2>
+<p><a href="https://github.com/TaylorKunZhang/cmake-tutorial/tree/master/mixing-static-and-shared" target="_blank" rel="noopener">示例程序地址</a></p>
+<p>在本节中，我们将展示如何使用 <code>BUILD_SHARED_LIBS</code> 变量来控制 <code>add_library</code> 的默认行为，并允许控制构建没有显式类型 <code>(STATIC/SHARED/MODULE/OBJECT)</code> 的库。</p>
+<p>为此，我们需要将 <code>BUILD_SHARED_LIBS</code> 添加到顶级 <code>CMakeLists.txt</code>。我们使用 <code>option</code> 命令，因为它允许用户有选择地选择该值是 <code>On</code> 还是 <code>Off</code>。</p>
+<p>接下来，我们将重构 <code>MathFunctions</code> 使其成为使用 <code>mysqrt</code> 或 <code>sqrt</code> 封装的真实库，而不是要求调用代码执行此逻辑。这也意味着 <code>USE_MYMATH</code> 将不会控制构建 <code>MathFuctions</code>，而是将控制此库的行为。</p>
+<p>第一步是将顶级 <code>CMakeLists.txt</code> 的开始部分更新为：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 设置运行此配置文件所需的CMake最低版本</span></span><br><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.15</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># set the project name and version</span></span><br><span class="line"><span class="comment"># 设置项目名称和版本</span></span><br><span class="line"><span class="keyword">project</span>(Tutorial VERSION <span class="number">1.0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># specify the C++ standard</span></span><br><span class="line"><span class="comment"># 指定C ++标准</span></span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># control where the static and shared libraries are built so that on windows</span></span><br><span class="line"><span class="comment"># we don't need to tinker with the path to run the executable</span></span><br><span class="line"><span class="comment"># 控制静态和共享库的构建位置，以便在Windows上我们无需修改运行可执行文件的路径</span></span><br><span class="line"><span class="keyword">set</span>(CMAKE_ARCHIVE_OUTPUT_DIRECTORY <span class="string">"$&#123;PROJECT_BINARY_DIR&#125;"</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_LIBRARY_OUTPUT_DIRECTORY <span class="string">"$&#123;PROJECT_BINARY_DIR&#125;"</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_RUNTIME_OUTPUT_DIRECTORY <span class="string">"$&#123;PROJECT_BINARY_DIR&#125;"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">option</span>(BUILD_SHARED_LIBS <span class="string">"Build using shared libraries"</span> <span class="keyword">ON</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># configure a header file to pass the version number only</span></span><br><span class="line"><span class="comment"># 配置头文件且仅传递版本号</span></span><br><span class="line"><span class="keyword">configure_file</span>(TutorialConfig.h.in TutorialConfig.h)</span><br><span class="line"></span><br><span class="line"><span class="comment"># add the MathFunctions library</span></span><br><span class="line"><span class="comment"># 添加MathFunctions库</span></span><br><span class="line"><span class="keyword">add_subdirectory</span>(MathFunctions)</span><br><span class="line"></span><br><span class="line"><span class="comment"># add the executable</span></span><br><span class="line"><span class="comment"># 添加一个可执行文件</span></span><br><span class="line"><span class="keyword">add_executable</span>(Tutorial tutorial.cxx)</span><br><span class="line"><span class="keyword">target_link_libraries</span>(Tutorial PUBLIC MathFunctions)</span><br><span class="line"></span><br><span class="line"><span class="comment"># add the binary tree to the search path for include files</span></span><br><span class="line"><span class="comment"># so that we will find TutorialConfig.h</span></span><br><span class="line"><span class="comment"># 将二进制目录添加到包含文件的搜索路径中，以便我们找到TutorialConfig.h</span></span><br><span class="line"><span class="keyword">target_include_directories</span>(Tutorial PUBLIC</span><br><span class="line">        <span class="string">"$&#123;PROJECT_BINARY_DIR&#125;"</span></span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>现在我们将始终使用 <code>MathFunctions</code> 库，我们需要更新该库的逻辑。因此，在 <code>MathFunctions/CMakeLists.txt</code> 中，我们需要创建一个 <code>SqrtLibrary</code> ，当启用 <code> USE_MYMATH</code> 时有条件地对其进行构建。现在，由于这是一个教程，我们将明确要求 <code>SqrtLibrary</code> 是静态构建的。</p>
+<p>最终结果是 <code>MathFunctions/CMakeLists.txt</code> 应该如下所示：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># add the library that runs</span></span><br><span class="line"><span class="comment"># 添加运行时库</span></span><br><span class="line"><span class="keyword">add_library</span>(MathFunctions MathFunctions.cxx)</span><br><span class="line"></span><br><span class="line"><span class="comment"># state that anybody linking to us needs to include the current source dir</span></span><br><span class="line"><span class="comment"># to find MathFunctions.h, while we don't.</span></span><br><span class="line"><span class="comment"># 说明与我们链接的任何人都需要包括当前源目录才能找到MathFunctions.h，而我们不需要。</span></span><br><span class="line"><span class="keyword">target_include_directories</span>(MathFunctions</span><br><span class="line">        INTERFACE <span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line"><span class="comment"># should we use our own math functions</span></span><br><span class="line"><span class="comment"># 我们是否使用自己的数学函数</span></span><br><span class="line"><span class="keyword">option</span>(USE_MYMATH <span class="string">"Use tutorial provided math implementation"</span> <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">if</span> (USE_MYMATH)</span><br><span class="line">    <span class="keyword">target_compile_definitions</span>(MathFunctions PRIVATE <span class="string">"USE_MYMATH"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># first we add the executable that generates the table</span></span><br><span class="line">    <span class="comment"># 首先，我们添加生成表的可执行文件</span></span><br><span class="line">    <span class="keyword">add_executable</span>(MakeTable MakeTable.cxx)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># add the command to generate the source code</span></span><br><span class="line">    <span class="comment"># 添加命令以生成源代码</span></span><br><span class="line">    <span class="keyword">add_custom_command</span>(</span><br><span class="line">            OUTPUT <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/Table.h</span><br><span class="line">            <span class="keyword">COMMAND</span> MakeTable <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/Table.h</span><br><span class="line">            DEPENDS MakeTable</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment"># library that just does sqrt</span></span><br><span class="line">    <span class="comment"># 只包含sqrt的库</span></span><br><span class="line">    <span class="keyword">add_library</span>(SqrtLibrary STATIC</span><br><span class="line">            mysqrt.cxx</span><br><span class="line">            <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/Table.h</span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line">    <span class="comment"># state that we depend on our binary dir to find Table.h</span></span><br><span class="line">    <span class="comment"># 声明我们依靠二进制目录找到Table.h</span></span><br><span class="line">    <span class="keyword">target_include_directories</span>(SqrtLibrary PRIVATE</span><br><span class="line">            <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span></span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">target_link_libraries</span>(MathFunctions PRIVATE SqrtLibrary)</span><br><span class="line"><span class="keyword">endif</span> ()</span><br><span class="line"></span><br><span class="line"><span class="comment"># define the symbol stating we are using the declspec(dllexport) when</span></span><br><span class="line"><span class="comment"># building on windows</span></span><br><span class="line"><span class="comment"># 定义标记在Windows上构建时使用declspec(dllexport)</span></span><br><span class="line"><span class="keyword">target_compile_definitions</span>(MathFunctions PRIVATE <span class="string">"EXPORTING_MYMATH"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># install rules</span></span><br><span class="line"><span class="comment"># 安装规则</span></span><br><span class="line"><span class="keyword">install</span>(TARGETS MathFunctions DESTINATION lib)</span><br><span class="line"><span class="keyword">install</span>(FILES MathFunctions.h DESTINATION <span class="keyword">include</span>)</span><br></pre></td></tr></table></figure>
+<p>接下来在 <code>MathFunctions</code> 文件目录下， 新建一个 <code>mysqrt.h</code> 文件，内容如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> mathfunctions &#123;</span><br><span class="line">    <span class="keyword">namespace</span> detail &#123;</span><br><span class="line">        <span class="function"><span class="keyword">double</span> <span class="title">mysqrt</span><span class="params">(<span class="keyword">double</span> x)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来在 <code>MathFunctions</code> 文件目录下， 新建一个 <code>MathFunctions.cxx</code> 文件，内容如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"MathFunctions.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> USE_MYMATH</span></span><br><span class="line"><span class="meta">#  <span class="meta-keyword">include</span> <span class="meta-string">"mysqrt.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"><span class="meta">#  <span class="meta-keyword">include</span> <span class="meta-string">&lt;cmath&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> mathfunctions &#123;</span><br><span class="line">    <span class="function"><span class="keyword">double</span> <span class="title">sqrt</span><span class="params">(<span class="keyword">double</span> x)</span> </span>&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> USE_MYMATH</span></span><br><span class="line">        <span class="keyword">return</span> detail::mysqrt(x);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">std</span>::<span class="built_in">sqrt</span>(x);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来，更新 <code>MathFunctions/mysqrt.cxx</code> 以使用 <code>mathfunctions</code> 和 <code>detail</code> 命名空间：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"mysqrt.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// include the generated table</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Table.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> mathfunctions &#123;</span><br><span class="line">    <span class="keyword">namespace</span> detail &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// a hack square root calculation using simple operations</span></span><br><span class="line">        <span class="function"><span class="keyword">double</span> <span class="title">mysqrt</span><span class="params">(<span class="keyword">double</span> x)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (x &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">double</span> result = x;</span><br><span class="line">            <span class="keyword">if</span> (x &gt;= <span class="number">1</span> &amp;&amp; x &lt; <span class="number">10</span>) &#123;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"Use the table to help find an initial value "</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">                result = sqrtTable[<span class="keyword">static_cast</span>&lt;<span class="keyword">int</span>&gt;(x)];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// do ten iterations</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i) &#123;</span><br><span class="line">                <span class="keyword">if</span> (result &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                    result = <span class="number">0.1</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">double</span> delta = x - (result * result);</span><br><span class="line">                result = result + <span class="number">0.5</span> * delta / result;</span><br><span class="line">                <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"Computing sqrt of "</span> &lt;&lt; x &lt;&lt; <span class="string">" to be "</span> &lt;&lt; result &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们还需要在 <code>tutorial.cxx</code> 中进行一些更改，以使其不再使用 <code>USE_MYMATH</code>：</p>
+<ol>
+<li>始终包含 <code>MathFunctions.h</code></li>
+<li>始终使用 <code>mathfunctions::sqrt</code></li>
+<li>不包含 <code>cmath</code></li>
+</ol>
+<p>移除 <code>TutorialConfig.h.in</code> 中关于 <code>USE_MYMATH</code> 的定义，最后，更新 <code>MathFunctions/MathFunctions.h</code> 以使用 <code>dll</code> 导出定义：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> defined(_WIN32)</span></span><br><span class="line"><span class="meta">#  <span class="meta-keyword">if</span> defined(EXPORTING_MYMATH)</span></span><br><span class="line"><span class="meta">#    <span class="meta-keyword">define</span> DECLSPEC __declspec(dllexport)</span></span><br><span class="line"><span class="meta">#  <span class="meta-keyword">else</span></span></span><br><span class="line"><span class="meta">#    <span class="meta-keyword">define</span> DECLSPEC __declspec(dllimport)</span></span><br><span class="line"><span class="meta">#  <span class="meta-keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span> <span class="comment">// non windows</span></span></span><br><span class="line"><span class="meta">#  <span class="meta-keyword">define</span> DECLSPEC</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> mathfunctions &#123;</span><br><span class="line">    <span class="function"><span class="keyword">double</span> DECLSPEC <span class="title">sqrt</span><span class="params">(<span class="keyword">double</span> x)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此时，如果您构建了所有内容，则会注意到链接会失败，因为我们将没有位置的静态库代码库与具有位置的代码库相结合。解决方案是无论构建类型如何，都将 <code>SqrtLibrary</code> 的 <code>POSITION_INDEPENDENT_CODE</code> 目标属性显式设置为 <code>True</code>。</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># state that SqrtLibrary need PIC when the default is shared libraries</span></span><br><span class="line"><span class="comment"># 声明默认为共享库时，SqrtLibrary需要PIC</span></span><br><span class="line"><span class="keyword">set_target_properties</span>(SqrtLibrary PROPERTIES</span><br><span class="line">        POSITION_INDEPENDENT_CODE <span class="variable">$&#123;BUILD_SHARED_LIBS&#125;</span></span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line"><span class="keyword">target_link_libraries</span>(MathFunctions PRIVATE SqrtLibrary)</span><br></pre></td></tr></table></figure>
+<p>使用 <code>cmake-gui</code> 构建项目，勾选 <code>BUILD_SHARED_LIBS</code></p>
+<p>在项目根目录运行命令生成可执行文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmake --build cmake-build-debug</span><br></pre></td></tr></table></figure>
+<p>在项目根目录运行生成的可执行文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./cmake-build-debug/Tutorial 2</span><br></pre></td></tr></table></figure>
+<p>终端输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Use the table to help find an initial value </span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">The square root of 2 is 1.41421</span><br></pre></td></tr></table></figure>
+<p>使用 <code>cmake-gui</code> 重新构建项目，取消勾选 <code>BUILD_SHARED_LIBS</code></p>
+<p>在项目根目录运行命令生成可执行文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmake --build cmake-build-debug</span><br></pre></td></tr></table></figure>
+<p>在项目根目录运行生成的可执行文件：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./cmake-build-debug/Tutorial 2</span><br></pre></td></tr></table></figure>
+<p>终端输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Use the table to help find an initial value </span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">Computing sqrt of 2 to be 1.41421</span><br><span class="line">The square root of 2 is 1.41421</span><br></pre></td></tr></table></figure>
+<h2 id="添加生成器表达式">添加生成器表达式</h2>
+<p><a href="https://github.com/TaylorKunZhang/cmake-tutorial/tree/master/add-generator-expressions" target="_blank" rel="noopener">示例程序地址</a></p>
+<p>在构建系统生成期间会评估生成器表达式，以生成特定于每个构建配置的信息。</p>
+<p>在许多目标属性的上下文中允许使用生成器表达式，例如 <code>LINK_LIBRARIES</code>、<code>INCLUDE_DIRECTORIES</code>、 <code>COMPILE_DEFINITIONS</code> 等。当使用命令填充这些属性时，也可以使用它们，例如 <code>target_link_libraries()</code>、<code>target_include_directories()</code>、<code>target_compile_definitions()</code>等。</p>
+<p>生成器表达式可用于启用条件链接、编译时使用的条件定义、条件包含目录等。这些条件可以基于构建配置、目标属性、平台信息或任何其他可查询信息。</p>
+<p>生成器表达式有不同类型，包括逻辑，信息和输出表达式。</p>
+<p>逻辑表达式用于创建条件输出，基本的表达式是0和1表达式，即布尔表达式。<code>$&lt;0:…&gt;</code>  代表冒号前的条件为假，表达式的结果为空字符串。 <code>$&lt;1:…&gt;</code> 代表冒号前的条件为真，表达式的结果为“…”的内容</p>
+<p>生成器表达式的一个常见用法是有条件地添加编译器标志，例如语言级别或警告标志。一个好的模式是将此信息与允许传播此信息的 <code>INTERFACE</code> 目标相关联。让我们开始构建 <code>INTERFACE</code> 目标，并指定所需的 <code>C++</code> 标准级别11，而不是使用 <code>CMACHYCXXY</code> 标准。</p>
+<p>所以下面的代码：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># specify the C++ standard</span></span><br><span class="line"><span class="comment"># 指定C ++标准</span></span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="keyword">True</span>)</span><br></pre></td></tr></table></figure>
+<p>将被替换为：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add_library</span>(tutorial_compiler_flags INTERFACE)</span><br><span class="line"><span class="keyword">target_compile_features</span>(tutorial_compiler_flags INTERFACE cxx_std_11)</span><br></pre></td></tr></table></figure>
+<p>接下来，我们为项目添加所需的编译器警告标志。由于警告标志根据编译器的不同而不同，因此我们使用 <code>COMPILE_LANG_AND_ID</code> 生成器表达式来控制在给定一种语言和一组编译器 <code>ID</code> 的情况下应应用的标志，如下所示：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># add compiler warning flags just when building this project via</span></span><br><span class="line"><span class="comment"># the BUILD_INTERFACE genex</span></span><br><span class="line"><span class="comment"># 仅当通过BUILD_INTERFACE生成此项目时添加编译器警告标志</span></span><br><span class="line"><span class="keyword">set</span>(gcc_like_cxx <span class="string">"$&lt;COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU&gt;"</span>)</span><br><span class="line"><span class="keyword">set</span>(msvc_cxx <span class="string">"$&lt;COMPILE_LANG_AND_ID:CXX,MSVC&gt;"</span>)</span><br><span class="line"><span class="keyword">target_compile_options</span>(tutorial_compiler_flags INTERFACE</span><br><span class="line">        <span class="string">"$&lt;$&#123;gcc_like_cxx&#125;:$&lt;BUILD_INTERFACE:-Wall;-Wextra;-Wshadow;-Wformat=2;-Wunused&gt;&gt;"</span></span><br><span class="line">        <span class="string">"$&lt;$&#123;msvc_cxx&#125;:$&lt;BUILD_INTERFACE:-W3&gt;&gt;"</span></span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>我们可以看到警告标志封装在 <code>BUILD_INTERFACE</code> 条件内。这样做是为了让已安装项目的使用者不会继承我们的警告标志。</p>
+<p>修改 <code>MathFunctions/CMakeLists.txt</code> 文件，使所有的目标都增加一个调用 <code>tutorial_compiler_flags</code> 的  <code>target_link_libraries</code>。</p>
+<h2 id="添加导出配置">添加导出配置</h2>
+<p><a href="https://github.com/TaylorKunZhang/cmake-tutorial/tree/master/add-export-configuration" target="_blank" rel="noopener">示例程序地址</a></p>
+<p>在本教程的 “安装” 一节，我们增加了 <code>CMake</code> 安装库和项目头的能力。在 &quot;生成安装程序“ 一节，我们添加了打包此信息的功能，以便将其分发给其他人。</p>
+<p>下一步是添加必要的信息，以便其他 <code>CMake</code> 项目可以使用我们的项目，无论是构建目录、本地安装还是打包。</p>
+<p>第一步是更新我们的 <code>install(TARGETS)</code> 命令，不仅要指定 <code>DESTINATION</code>，还要指定 <code>EXPORT</code>。<code>EXPORT</code> 关键字将生成并安装一个CMake文件，该文件包含用于从安装树中导入 <code>install</code> 命令中列出的所有目标的代码。通过更新 <code>MathFunctions/CMakeLists.txt</code> 中的 <code>install</code> 命令，显式导出 <code>MathFunctions</code>库，如下所示：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install rules</span></span><br><span class="line"><span class="comment"># 安装规则</span></span><br><span class="line"><span class="keyword">install</span>(TARGETS MathFunctions tutorial_compiler_flags</span><br><span class="line">        DESTINATION lib</span><br><span class="line">        <span class="keyword">EXPORT</span> MathFunctionsTargets)</span><br><span class="line"><span class="keyword">install</span>(FILES MathFunctions.h DESTINATION <span class="keyword">include</span>)</span><br></pre></td></tr></table></figure>
+<p>现在我们已经导出了 <code>MathFunctions</code>，我们还需要显式安装生成的 <code>MathFunctionsTargets.cmake</code> 文件。这是通过将以下内容添加到顶级 <code>CMakeLists.txt</code> 的底部来完成的：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install the configuration targets</span></span><br><span class="line"><span class="comment"># 安装配置目标</span></span><br><span class="line"><span class="keyword">install</span>(<span class="keyword">EXPORT</span> MathFunctionsTargets</span><br><span class="line">        <span class="keyword">FILE</span> MathFunctionsTargets.cmake</span><br><span class="line">        DESTINATION lib/cmake/MathFunctions</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>此时，您应该尝试运行 <code>CMake</code>。如果一切设置正确，您将看到 <code>CMake</code> 将生成如下错误：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Target &quot;MathFunctions&quot; INTERFACE_INCLUDE_DIRECTORIES property contains</span><br><span class="line">path:</span><br><span class="line"></span><br><span class="line">  &quot;/Users/robert/Documents/CMakeClass/Tutorial/Step11/MathFunctions&quot;</span><br><span class="line"></span><br><span class="line">which is prefixed in the source directory.</span><br></pre></td></tr></table></figure>
+<p><code>CMake</code> 想说的是，在生成导出信息的过程中，它将导出一个与当前机器有内在联系的路径，并且在其他机器上无效。解决方案是更新 <code>MathFunctions</code> 的 <code>target_include_directories</code>，让 <code>CMake</code> 理解在从生成目录和安装/打包中使用时需要不同的接口位置。这意味着将 <code>MathFunctions</code> 调用的 <code>target_include_directories</code> 转换为如下所示：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># state that anybody linking to us needs to include the current source dir</span></span><br><span class="line"><span class="comment"># to find MathFunctions.h, while we don't.</span></span><br><span class="line"><span class="comment"># 说明与我们链接的任何人都需要包括当前源目录才能找到MathFunctions.h，而我们不需要。</span></span><br><span class="line"><span class="keyword">target_include_directories</span>(MathFunctions</span><br><span class="line">        INTERFACE</span><br><span class="line">        $&lt;BUILD_INTERFACE:<span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span>&gt;</span><br><span class="line">        $&lt;INSTALL_INTERFACE:<span class="keyword">include</span>&gt;</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>更新后，我们可以重新运行 <code>CMake</code> 并查看是否不再发出警告。</p>
+<p>至此，我们已经正确地包装了 <code>CMake</code> 所需的目标信息，但仍然需要生成 <code>MathFunctionsConfig.cmake</code>，以便 <code>CMake find_package</code> 命令可以找到我们的项目。因此，我们将添加新文件 <code>Config.cmake.in</code> 到项目的顶层，其内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@PACKAGE_INIT@</span><br><span class="line"></span><br><span class="line">include ( &quot;$&#123;CMAKE_CURRENT_LIST_DIR&#125;/MathFunctionsTargets.cmake&quot; )</span><br></pre></td></tr></table></figure>
+<p>然后，要正确配置和安装该文件，请在顶级 <code>CMakeLists</code> 的底部添加以下内容：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install the configuration targets</span></span><br><span class="line"><span class="comment"># 安装配置目标</span></span><br><span class="line"><span class="keyword">install</span>(<span class="keyword">EXPORT</span> MathFunctionsTargets</span><br><span class="line">        <span class="keyword">FILE</span> MathFunctionsTargets.cmake</span><br><span class="line">        DESTINATION lib/cmake/MathFunctions</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line"><span class="keyword">include</span>(CMakePackageConfigHelpers)</span><br><span class="line"><span class="comment"># generate the config file that is includes the exports</span></span><br><span class="line"><span class="comment"># 生成包含导出的配置文件</span></span><br><span class="line">configure_package_config_file(<span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span>/Config.cmake.in</span><br><span class="line">        <span class="string">"$&#123;CMAKE_CURRENT_BINARY_DIR&#125;/MathFunctionsConfig.cmake"</span></span><br><span class="line">        INSTALL_DESTINATION <span class="string">"lib/cmake/example"</span></span><br><span class="line">        NO_SET_AND_CHECK_MACRO</span><br><span class="line">        NO_CHECK_REQUIRED_COMPONENTS_MACRO</span><br><span class="line">        )</span><br><span class="line"><span class="comment"># generate the version file for the config file</span></span><br><span class="line"><span class="comment"># 生成配置文件的版本文件</span></span><br><span class="line">write_basic_package_version_file(</span><br><span class="line">        <span class="string">"$&#123;CMAKE_CURRENT_BINARY_DIR&#125;/MathFunctionsConfigVersion.cmake"</span></span><br><span class="line">        VERSION <span class="string">"$&#123;Tutorial_VERSION_MAJOR&#125;.$&#123;Tutorial_VERSION_MINOR&#125;"</span></span><br><span class="line">        COMPATIBILITY AnyNewerVersion</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># install the configuration file</span></span><br><span class="line"><span class="comment"># 安装配置文件</span></span><br><span class="line"><span class="keyword">install</span>(FILES</span><br><span class="line">        <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/MathFunctionsConfig.cmake</span><br><span class="line">        DESTINATION lib/cmake/MathFunctions</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>至此，我们为项目生成了可重定位的 <code>CMake</code> 配置，可以在安装或打包项目后使用它。如果我们也希望从构建目录中使用我们的项目，则只需将以下内容添加到顶级 <code>CMakeLists</code> 的底部：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># generate the export targets for the build tree</span></span><br><span class="line"><span class="comment"># needs to be after the install(TARGETS ) command</span></span><br><span class="line"><span class="comment"># 在install(TARGETS)命令之后生成生成树的导出目标</span></span><br><span class="line"><span class="keyword">export</span>(<span class="keyword">EXPORT</span> MathFunctionsTargets</span><br><span class="line">        <span class="keyword">FILE</span> <span class="string">"$&#123;CMAKE_CURRENT_BINARY_DIR&#125;/MathFunctionsTargets.cmake"</span></span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>通过此导出调用我们将生成一个 <code>Targets.cmake</code>，允许在构建目录中配置的 <code>MathFunctionsConfig.cmake</code> 由其他项目使用，而无需安装它。</p>
+<h2 id="CMake使用教程系列文章">CMake使用教程系列文章</h2>
+<ul>
+<li><a href="https://blog.taylorzhang.cc/2019/11/18/cmake-tutorial-1/" target="_blank" rel="noopener">CMake使用教程(一)</a>
+<ul>
+<li>基础项目</li>
+<li>添加版本号和配置头文件</li>
+<li>指定C++标准</li>
+<li>添加库</li>
+<li>提供选项</li>
+</ul>
+</li>
+<li><a href="https://blog.taylorzhang.cc/2019/11/18/cmake-tutorial-2/" target="_blank" rel="noopener">CMake使用教程(二)</a>
+<ul>
+<li>添加“库”的使用要求</li>
+<li>安装</li>
+<li>测试</li>
+<li>系统自检</li>
+</ul>
+</li>
+<li><a href="https://blog.taylorzhang.cc/2019/11/18/cmake-tutorial-3/" target="_blank" rel="noopener">CMake使用教程(三)</a>
+<ul>
+<li>指定编译定义</li>
+<li>添加自定义命令和生成的文件</li>
+<li>生成安装程序</li>
+<li>添加对仪表板的支持</li>
+</ul>
+</li>
+<li><a href="https://blog.taylorzhang.cc/2019/11/18/cmake-tutorial-4/" target="_blank" rel="noopener">CMake使用教程(四)</a>
+<ul>
+<li>混合静态和共享</li>
+<li>添加生成器表达式</li>
+<li>添加导出配置</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/cmake-tutorial/" rel="tag"><i class="fa fa-tag"></i> cmake-tutorial</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/18/cmake-tutorial-3/" rel="next" title="CMake使用教程(三)">
+                  <i class="fa fa-chevron-left"></i> CMake使用教程(三)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/01/16/choose-specification/" rel="prev" title="可以单个因子构成一个SKU的实现">
+                  可以单个因子构成一个SKU的实现 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#混合静态和共享"><span class="nav-text">混合静态和共享</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加生成器表达式"><span class="nav-text">添加生成器表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加导出配置"><span class="nav-text">添加导出配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake使用教程系列文章"><span class="nav-text">CMake使用教程系列文章</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="张坤">
+  <p class="site-author-name" itemprop="name">张坤</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/TaylorKunZhang" title="GitHub &rarr; https://github.com/TaylorKunZhang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:TaylorKunZhang@gmail.com" title="E-Mail &rarr; mailto:TaylorKunZhang@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 – <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张坤</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.4.0</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/muse.js?v=7.4.0"></script>
+
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

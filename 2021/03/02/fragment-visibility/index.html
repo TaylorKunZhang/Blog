@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-taylor.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-taylor.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-taylor.png?v=7.4.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"hide","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Fragment 有很多种使用方法，官方并没有提供一个统一的 api 来处理 Fragment 的可见性判断和回调，导致在不同的使用场景下需要使用不同的方法来判断 Fragment 的可见性。网上已经有很多讲 Fragment 可见性的文章，但是大部分文章覆盖的使用场景不够全面，有些文章的用法也过时了，因此本人梳理了当前 Fragment 的各种使用场景，提供了一个统一的 api 来处理 Frag">
+<meta name="keywords" content="开源库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fragment可见性及懒加载终极解决方案">
+<meta property="og:url" content="http://yoursite.com/2021/03/02/fragment-visibility/index.html">
+<meta property="og:site_name" content="张坤的笔记">
+<meta property="og:description" content="Fragment 有很多种使用方法，官方并没有提供一个统一的 api 来处理 Fragment 的可见性判断和回调，导致在不同的使用场景下需要使用不同的方法来判断 Fragment 的可见性。网上已经有很多讲 Fragment 可见性的文章，但是大部分文章覆盖的使用场景不够全面，有些文章的用法也过时了，因此本人梳理了当前 Fragment 的各种使用场景，提供了一个统一的 api 来处理 Frag">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2021/03/02/fragment-visibility/nested-fragment.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/02/fragment-visibility/nested-old-way-1.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/02/fragment-visibility/nested-old-way-2.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/02/fragment-visibility/nested-new-way-1.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/02/fragment-visibility/nested-new-way-2.png">
+<meta property="og:updated_time" content="2021-03-02T00:26:06.146Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fragment可见性及懒加载终极解决方案">
+<meta name="twitter:description" content="Fragment 有很多种使用方法，官方并没有提供一个统一的 api 来处理 Fragment 的可见性判断和回调，导致在不同的使用场景下需要使用不同的方法来判断 Fragment 的可见性。网上已经有很多讲 Fragment 可见性的文章，但是大部分文章覆盖的使用场景不够全面，有些文章的用法也过时了，因此本人梳理了当前 Fragment 的各种使用场景，提供了一个统一的 api 来处理 Frag">
+<meta name="twitter:image" content="http://yoursite.com/2021/03/02/fragment-visibility/nested-fragment.png">
+  <link rel="canonical" href="http://yoursite.com/2021/03/02/fragment-visibility/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Fragment可见性及懒加载终极解决方案 | 张坤的笔记</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张坤的笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/TaylorKunZhang" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/02/fragment-visibility/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张坤">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张坤的笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Fragment可见性及懒加载终极解决方案
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2021-03-02 08:17:37 / 修改时间：08:26:06" itemprop="dateCreated datePublished" datetime="2021-03-02T08:17:37+08:00">2021-03-02</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Fragment 有很多种使用方法，官方并没有提供一个统一的 api 来处理 Fragment 的可见性判断和回调，导致在不同的使用场景下需要使用不同的方法来判断 Fragment 的可见性。网上已经有很多讲 Fragment 可见性的文章，但是大部分文章覆盖的使用场景不够全面，有些文章的用法也过时了，因此本人梳理了当前 Fragment 的各种使用场景，提供了一个统一的 api 来处理 Fragment 的可见性。</p>
+<a id="more"></a>
+<h2 id="一般使用场景">一般使用场景</h2>
+<h3 id="在Activity中直接使用">在Activity中直接使用</h3>
+<p>在 xml 文件中声明 Fragment，或者在代码中通过 FragmentTransaction 的 add 或 replace 动态载入 Fragment。这两种情况下都只要监听 Fragment 的 onResume 和 onPause 方法就能判断 Fragment 的可见性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResume</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume()</span><br><span class="line"></span><br><span class="line">    determineFragmentVisible()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onPause</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onPause()</span><br><span class="line"></span><br><span class="line">    determineFragmentInvisible()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="使用show和hide控制显示和隐藏">使用show和hide控制显示和隐藏</h3>
+<blockquote>
+<p>Google 在 <code>androidx.fragment 1.2.0</code> 中新增了一个 FragmentContainerView，用来替代 FlameLayout 做为 Fragment 的容器，在下文中将使用 FragmentContainerView 作为 Fragment 的容器。</p>
+</blockquote>
+<h4 id="老的用法">老的用法</h4>
+<p>通过 FragmentTransaction 的 add 将 Fragment 添加到 FragmentManager 后，Fragment 的生命周期会跟随绑定的 Activity 或父 Fragment 走到 onResume，这个时候，只要所依附的 Activity 或父 Fragment 的生命周期不发生变化，通过 FragmentTransaction 的 show 和 hide 方法控制 Fragment 的显示和隐藏并不会改变 Fragment 的生命周期，这个时候需要监听 onHiddenChanged 判断 Fragment 的可见性。</p>
+<p>一般情况下，将 Fragment add 到 FragmentManager 的过程是在 Activity 中的 onCreate 回调中进行的，第一次回调 onHiddenChanged 是在 Fragment 回调 onCreateView 之前。如果需要在 Fragment 第一次可见的时候进行 UI 操作，就会出错，为了避免出错，需要结合 Fragment 的 onResume 和 onPause 判断 Fragment 的可见性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onHiddenChanged</span><span class="params">(hidden: <span class="type">Boolean</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onHiddenChanged(hidden)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hidden) &#123;</span><br><span class="line">        determineFragmentInvisible()</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        determineFragmentVisible()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResume</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume()</span><br><span class="line"></span><br><span class="line">    determineFragmentVisible()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onPause</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onPause()</span><br><span class="line"></span><br><span class="line">    determineFragmentInvisible()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="AndroidX用法">AndroidX用法</h4>
+<p>调用了 hide 后，接着调用 <code>setMaxLifecycle(fragment, Lifecycle.State.STARTED)</code>，Fragment 生命周期会走到 onPause。调用 show 方法后，接着调用 <code>setMaxLifecycle(fragment, Lifecycle.State.RESUMED)</code>，Fragment 生命周期会走到 onPause。这样只要监听 Fragment 的 onResume 和 onPause 方法就能判断 Fragment 的可见性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResume</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume()</span><br><span class="line"></span><br><span class="line">    determineFragmentVisible()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onPause</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onPause()</span><br><span class="line"></span><br><span class="line">    determineFragmentInvisible()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="在ViewPager中使用">在ViewPager中使用</h3>
+<h4 id="老的用法-2">老的用法</h4>
+<p>在 support 和  <code>androidx.fragment 1.0.0</code>，通过监听 setUserVisibleHint 判断Fragment 的可见性。如果将 Fragment add 到 FragmentManager 的过程是在 Activity 中的 onCreate 回调中进行的，第一次回调 setUserVisibleHint 也是在 Fragment 回调 onCreateView 之前，也需要结合 Fragment 的 onResume 和 onPause 判断 Fragment 的可见性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setUserVisibleHint</span><span class="params">(isVisibleToUser: <span class="type">Boolean</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.setUserVisibleHint(isVisibleToUser)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (isVisibleToUser) &#123;</span><br><span class="line">        determineFragmentVisible()</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        determineFragmentInvisible()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResume</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume()</span><br><span class="line"></span><br><span class="line">    determineFragmentVisible()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onPause</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onPause()</span><br><span class="line"></span><br><span class="line">    determineFragmentInvisible()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="AndroidX用法-2">AndroidX用法</h4>
+<p>谷歌从 <code>androidx.fragment 1.1.0</code> 中开始，对 FragmentPagerAdapter 和 FragmentStatePagerAdapter 进行了调整，支持使用 setMaxLifecycle 控制 Fragment 的生命周期，只需要创建 Adpter 的时候， Behavior 选择 <code>BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> BEHAVIOR_SET_USER_VISIBLE_HINT = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPrimaryItem</span><span class="params">(@NonNull ViewGroup container, <span class="keyword">int</span> position, @NonNull Object object)</span> </span>&#123;</span><br><span class="line">    Fragment fragment = (Fragment)object;</span><br><span class="line">    <span class="keyword">if</span> (fragment != mCurrentPrimaryItem) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mCurrentPrimaryItem != <span class="keyword">null</span>) &#123;</span><br><span class="line">            ...</span><br><span class="line">            <span class="keyword">if</span> (mBehavior == BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) &#123;</span><br><span class="line">                ...</span><br><span class="line">                mCurTransaction.setMaxLifecycle(mCurrentPrimaryItem, Lifecycle.State.STARTED);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                mCurrentPrimaryItem.setUserVisibleHint(<span class="keyword">false</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">if</span> (mBehavior == BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) &#123;</span><br><span class="line">            ...</span><br><span class="line">            mCurTransaction.setMaxLifecycle(fragment, Lifecycle.State.RESUMED);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            fragment.setUserVisibleHint(<span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样只要监听 Fragment 的 onResume 和 onPause 方法就能判断 Fragment 的可见性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResume</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume()</span><br><span class="line"></span><br><span class="line">    determineFragmentVisible()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onPause</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onPause()</span><br><span class="line"></span><br><span class="line">    determineFragmentInvisible()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="在ViewPager2中使用">在ViewPager2中使用</h3>
+<p>在 ViewPager2 中使用 Fragment 时，使用的适配器是 FragmentStateAdapter，FragmentStateAdapter 内部使用 FragmentMaxLifecycleEnforcer ，FragmentMaxLifecycleEnforcer 也是通过 setMaxLifecycle 控制 Fragment 的生命周期</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FragmentStateAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onAttachedToRecyclerView</span><span class="params">(@NonNull RecyclerView recyclerView)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">        mFragmentMaxLifecycleEnforcer = <span class="keyword">new</span> FragmentMaxLifecycleEnforcer();</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDetachedFromRecyclerView</span><span class="params">(@NonNull RecyclerView recyclerView)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">        mFragmentMaxLifecycleEnforcer = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">FragmentMaxLifecycleEnforcer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">updateFragmentMaxLifecycle</span><span class="params">(<span class="keyword">boolean</span> dataSetChanged)</span> </span>&#123;</span><br><span class="line">            ...</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> ix = <span class="number">0</span>; ix &lt; mFragments.size(); ix++) &#123;</span><br><span class="line">                ...</span><br><span class="line">                <span class="keyword">if</span> (itemId != mPrimaryItemId) &#123;</span><br><span class="line">                    transaction.setMaxLifecycle(fragment, STARTED);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    toResume = fragment; <span class="comment">// itemId map key, so only one can match the predicate</span></span><br><span class="line">                &#125;</span><br><span class="line">                ...</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (toResume != <span class="keyword">null</span>) &#123; <span class="comment">// in case the Fragment wasn't added yet</span></span><br><span class="line">                transaction.setMaxLifecycle(toResume, RESUMED);</span><br><span class="line">            &#125;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样只要监听 Fragment 的 onResume 和 onPause 方法就能判断 Fragment 的可见性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResume</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume()</span><br><span class="line"></span><br><span class="line">    determineFragmentVisible()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onPause</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onPause()</span><br><span class="line"></span><br><span class="line">    determineFragmentInvisible()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="具体实现">具体实现</h3>
+<p>在 <code>IFragmentVisibility</code> 中定义 Fragment 可见性相关方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IFragmentVisibility</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Fragment可见时调用。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onVisible</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Fragment不可见时调用。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onInvisible</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Fragment第一次可见时调用。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onVisibleFirst</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Fragment可见时（第一次除外）调用。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onVisibleExceptFirst</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Fragment当前是否对用户可见</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">isVisibleToUser</span><span class="params">()</span></span>: <span class="built_in">Boolean</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Fragment可见">Fragment可见</h4>
+<p>Fragment 可见受到几个因素影响：Fragment 是否处于 RESUMED 状态、Fragment 是否显示、Fragment Hint 是否对用户可见，判断Fragment可见性可能会被连续调用多次，如果当前已经对用户可见，则不进行判断可见性。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Fragment当前是否对用户可见。</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">var</span> mIsFragmentVisible = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Fragment当前是否是第一次对用户可见。</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">var</span> mIsFragmentVisibleFirst = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">determineFragmentVisible</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (isResumed &amp;&amp; !isHidden &amp;&amp; userVisibleHint &amp;&amp; !mIsFragmentVisible) &#123;</span><br><span class="line">        mIsFragmentVisible = <span class="literal">true</span></span><br><span class="line">        onVisible()</span><br><span class="line">        <span class="keyword">if</span> (mIsFragmentVisibleFirst) &#123;</span><br><span class="line">            mIsFragmentVisibleFirst = <span class="literal">false</span></span><br><span class="line">            onVisibleFirst()</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            onVisibleExceptFirst()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Fragment不可见">Fragment不可见</h4>
+<p>当 Fragment 处于可见状态，调用一次 determineFragmentInvisible 方法，Fragment 就变成不可见了。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">determineFragmentInvisible</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (mIsFragmentVisible) &#123;</span><br><span class="line">        mIsFragmentVisible = <span class="literal">false</span></span><br><span class="line">        onInvisible()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Fragment嵌套">Fragment嵌套</h2>
+<p><img src="nested-fragment.png" alt></p>
+<h3 id="老的用法-3">老的用法</h3>
+<p>从日志中可以看到，Fragment-1 和 Fragment-1-1 处于可见状态，但是奇怪的是 Fragment-2-1 也处于可见状态，这不符合逻辑，判断可见性逻辑还有待优化的地方。</p>
+<p><img src="nested-old-way-1.png" alt></p>
+<p>分析日志可知，所有的 Fragment 生命周期都走到了onResume，但是 Fragment-2、Fragment-1-2、Fragment-2-2 因为 <code>isHidden = true</code>，判断出是不可见状态。Fragment-2-1 是 <code>isHidden = false</code>，但是 Fragment-2 是 <code>isHidden = true</code>，从逻辑上父 Fragment 不可见，子 Fragment 也应该不可见。所以在判断 Fragment 是否可见的时候，还要考虑父 Fragment 是否可见（如果存在父 Fragment）。</p>
+<p>当从 Fragment-1 切换到 Fragment-2 后，可以看到，Fragment-1 不可见，Fragment-2 可见，但是本应该不可见的 Fragment-1-1 还是可见，本应该可见的 Fragment-2-1 还是不可见，说明判断可见性逻辑还有待优化的地方。</p>
+<p><img src="nested-old-way-2.png" alt></p>
+<p>从 Fragment-1 切换到 Fragment-2，这两者的 onHiddenChanged 被调用了，所以它们的可见性发生了变化。Fragment-1-1 和 Fragment-2-1 没有任何操作，但是它们的可见性也应该随着父Fragment 可见性发生变化而变化，所以应该在父 Fragment 可见性变化的时候重新判断一次子 Fragment 的可见性。</p>
+<h3 id="AndroidX用法-3">AndroidX用法</h3>
+<p>全部使用 setMaxLifecycle 控制 Fragment 生命周期，可以看到 Fragment 的可见性判断是正确的。</p>
+<p><img src="nested-new-way-1.png" alt></p>
+<p>从 Fragment-1 切换到 Fragment-2，可见性判断还是正确的。</p>
+<p><img src="nested-new-way-2.png" alt></p>
+<p>子 Fragment 的生命周期会根据所绑定的 Activity 或父 Fragment 的生命周期变化而变化，setMaxLifecycle 改变了父 Fragment 的生命周期，子 Fragment 的生命周期自然就跟着变化了。所以，仅监听 Fragment 的 onResume 和 onPause 就能判断 Fragment 的可见性，不需要调整判断逻辑。</p>
+<h3 id="具体实现-2">具体实现</h3>
+<p>在 determineFragmentVisible 中增加判断父 Fragment 是否可见的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">determineFragmentVisible</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> parent = parentFragment</span><br><span class="line">    <span class="keyword">if</span> (parent != <span class="literal">null</span> &amp;&amp; parent <span class="keyword">is</span> VisibilityFragment) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!parent.isVisibleToUser()) &#123;</span><br><span class="line">            <span class="comment">// 父Fragment不可见，子Fragment也一定不可见</span></span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 determineFragmentVisible 和 determineFragmentInvisible 增加判断子 Fragment 的可见性代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">determineFragmentVisible</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">if</span> (isResumed &amp;&amp; !isHidden &amp;&amp; userVisibleHint &amp;&amp; !mIsFragmentVisible) &#123;</span><br><span class="line">        ...</span><br><span class="line">        determineChildFragmentVisible()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">determineFragmentInvisible</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (mIsFragmentVisible) &#123;</span><br><span class="line">        ...</span><br><span class="line">        determineChildFragmentInvisible()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">determineChildFragmentVisible</span><span class="params">()</span></span> &#123;</span><br><span class="line">    childFragmentManager.fragments.forEach &#123;</span><br><span class="line">        <span class="keyword">if</span> (it <span class="keyword">is</span> VisibilityFragment) &#123;</span><br><span class="line">            it.determineFragmentVisible()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">determineChildFragmentInvisible</span><span class="params">()</span></span> &#123;</span><br><span class="line">    childFragmentManager.fragments.forEach &#123;</span><br><span class="line">        <span class="keyword">if</span> (it <span class="keyword">is</span> VisibilityFragment) &#123;</span><br><span class="line">            it.determineFragmentInvisible()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="懒加载">懒加载</h2>
+<p>在实现了上述功能后，对于需要懒加载功能的 Fragment，只需要重写 onVisibleFirst，在里面加载数据就可以了。</p>
+<h2 id="总结">总结</h2>
+<p>对于全部使用 setMaxLifecycle 控制 Fragment 生命周期的代码，Fragment 的可见性判断相对比较简单，只要监听 Fragment 的 onResume 和 onPause 方法就能判断 Fragment 的可见性。</p>
+<p>对于老的用法或者老的用法和 setMaxLifecycle 混用的代码，Fragment 可见性判断不仅要考虑使用方式，也要考虑父 Fragment 的可见性，同时自身可见性改变的时候，也要主动调用子 Fragment 判断可见性的代码。</p>
+<h2 id="项目地址">项目地址</h2>
+<p><a href="https://github.com/TaylorKunZhang/fragment-visibility" target="_blank" rel="noopener">fragment-visibility</a>，觉得用起来很爽的，请不要吝啬你的 Star ！</p>
+<h2 id="参考">参考</h2>
+<p><a href="http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2017/0422/7863.html" target="_blank" rel="noopener">如何判断Fragment是否对用户可见</a></p>
+<p><a href="https://juejin.im/post/5cdb7c15f265da036c57ac66" target="_blank" rel="noopener">Fragment新功能，setMaxLifecycle了解一下</a></p>
+<p><a href="https://juejin.cn/post/6844904050698223624" target="_blank" rel="noopener">Androidx 下 Fragment 懒加载的新实现</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/开源库/" rel="tag"><i class="fa fa-tag"></i> 开源库</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2021/02/05/android-format-edit/" rel="next" title="Android如何优雅实现通用格式化编辑">
+                  <i class="fa fa-chevron-left"></i> Android如何优雅实现通用格式化编辑
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一般使用场景"><span class="nav-text">一般使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#在Activity中直接使用"><span class="nav-text">在Activity中直接使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用show和hide控制显示和隐藏"><span class="nav-text">使用show和hide控制显示和隐藏</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#老的用法"><span class="nav-text">老的用法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AndroidX用法"><span class="nav-text">AndroidX用法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在ViewPager中使用"><span class="nav-text">在ViewPager中使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#老的用法-2"><span class="nav-text">老的用法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AndroidX用法-2"><span class="nav-text">AndroidX用法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在ViewPager2中使用"><span class="nav-text">在ViewPager2中使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#具体实现"><span class="nav-text">具体实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Fragment可见"><span class="nav-text">Fragment可见</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Fragment不可见"><span class="nav-text">Fragment不可见</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fragment嵌套"><span class="nav-text">Fragment嵌套</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#老的用法-3"><span class="nav-text">老的用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AndroidX用法-3"><span class="nav-text">AndroidX用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#具体实现-2"><span class="nav-text">具体实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#懒加载"><span class="nav-text">懒加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#项目地址"><span class="nav-text">项目地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="张坤">
+  <p class="site-author-name" itemprop="name">张坤</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/TaylorKunZhang" title="GitHub &rarr; https://github.com/TaylorKunZhang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:TaylorKunZhang@gmail.com" title="E-Mail &rarr; mailto:TaylorKunZhang@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 – <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张坤</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.4.0</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/muse.js?v=7.4.0"></script>
+
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

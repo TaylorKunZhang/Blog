@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-taylor.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-taylor.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-taylor.png?v=7.4.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"hide","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="最近做了一版需求，和淘宝等商城App有些不一样，我们的商品单个因子就可以构成一个SKU，特地记录下来，给也有这种需求的App提供一个思路。">
+<meta name="keywords" content="SKU">
+<meta property="og:type" content="article">
+<meta property="og:title" content="可以单个因子构成一个SKU的实现">
+<meta property="og:url" content="http://yoursite.com/2020/01/16/choose-specification/index.html">
+<meta property="og:site_name" content="张坤的笔记">
+<meta property="og:description" content="最近做了一版需求，和淘宝等商城App有些不一样，我们的商品单个因子就可以构成一个SKU，特地记录下来，给也有这种需求的App提供一个思路。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2020/01/16/choose-specification/front_cover.gif">
+<meta property="og:image" content="http://yoursite.com/2020/01/16/choose-specification/front_bumper.gif">
+<meta property="og:image" content="http://yoursite.com/2020/01/16/choose-specification/rear_bumper.gif">
+<meta property="og:updated_time" content="2021-02-23T04:34:46.346Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="可以单个因子构成一个SKU的实现">
+<meta name="twitter:description" content="最近做了一版需求，和淘宝等商城App有些不一样，我们的商品单个因子就可以构成一个SKU，特地记录下来，给也有这种需求的App提供一个思路。">
+<meta name="twitter:image" content="http://yoursite.com/2020/01/16/choose-specification/front_cover.gif">
+  <link rel="canonical" href="http://yoursite.com/2020/01/16/choose-specification/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>可以单个因子构成一个SKU的实现 | 张坤的笔记</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张坤的笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+    
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/TaylorKunZhang" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/16/choose-specification/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张坤">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张坤的笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">可以单个因子构成一个SKU的实现
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-01-16 17:55:07" itemprop="dateCreated datePublished" datetime="2020-01-16T17:55:07+08:00">2020-01-16</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 12:34:46" itemprop="dateModified" datetime="2021-02-23T12:34:46+08:00">2021-02-23</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span class="post-meta-item" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近做了一版需求，和淘宝等商城App有些不一样，我们的商品单个因子就可以构成一个SKU，特地记录下来，给也有这种需求的App提供一个思路。</p>
+<a id="more"></a>
+<p><img src="front_cover.gif" alt></p>
+<h2 id="需求">需求</h2>
+<p>名词解释：</p>
+<ul>
+<li>规格：即SKU。</li>
+<li>因子组：构成商品规格的一个维度，比如：“座位数”。</li>
+<li>因子：因子组中具体的一个因子，比如说：“5座及以下”，“6座”，“7座及以上”。</li>
+</ul>
+<h3 id="灵活的因子">灵活的因子</h3>
+<p>每一个因子组<strong>最多只能选择一个因子</strong>，来构成一个规格。</p>
+<p>举个例子，假设钣金喷漆栏目里面有一个商品叫做 “前保险杠”，该商品有两个因子组：</p>
+<blockquote>
+<ul>
+<li>漆类
+<ul>
+<li>普通漆</li>
+<li>金属漆</li>
+</ul>
+</li>
+<li>钣金
+<ul>
+<li>普通钣金</li>
+<li>复杂钣金</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p>那么一共可以有8种规格：</p>
+<blockquote>
+<ul>
+<li>普通漆</li>
+<li>金属漆</li>
+<li>普通钣金</li>
+<li>复杂钣金</li>
+<li>普通漆-普通钣金</li>
+<li>普通漆-复杂钣金</li>
+<li>金属漆-普通钣金</li>
+<li>金属漆-复杂钣金</li>
+</ul>
+</blockquote>
+<p>在实际情况中，在配置的时候可能会删除几种不需要的规格，比如说删除规格：“普通钣金” 、 “复杂钣金” 和 “金属漆-复杂钣金”。</p>
+<p>对用户来说，只选一个 “漆类” 可以构成一个规格，也可以再搭配一个 “钣金” 构成另一种规格。只是选择 “金属漆” 的时候只能选择 “普通钣金”，不能选择 “复杂钣金”。</p>
+<p><img src="front_bumper.gif" alt></p>
+<h3 id="默认选中">默认选中</h3>
+<p>在显示选择规格弹窗的时候，默认勾选一组可以构成一个规格的因子，尽量让构成选中的因子位于因子组中靠前的位置。</p>
+<p>举个例子，假设后一个商品 “后保险杠” ，它也有 “漆类” 和 “钣金” 两个因子组，删除规格：“普通漆” 和 “普通漆-普通钣金”，可用规格如下：</p>
+<blockquote>
+<ul>
+<li>金属漆</li>
+<li>普通钣金</li>
+<li>复杂钣金</li>
+<li>普通漆-复杂钣金</li>
+<li>金属漆-普通钣金</li>
+<li>金属漆-复杂钣金</li>
+</ul>
+</blockquote>
+<p>那么默认选中的就是 “普通漆-复杂钣金”。</p>
+<p><img src="rear_bumper.gif" alt></p>
+<h2 id="后端返回数据">后端返回数据</h2>
+<p>后台返回的一个商品的 <code>JSON</code> 数据结构如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"id"</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"前保险杠"</span>,</span><br><span class="line">  <span class="attr">"factorGroupList"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"id"</span>: <span class="number">10</span>,</span><br><span class="line">      <span class="attr">"name"</span>: <span class="string">"漆类"</span>,</span><br><span class="line">      <span class="attr">"list"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">"id"</span>: <span class="number">11</span>,</span><br><span class="line">          <span class="attr">"name"</span>: <span class="string">"普通漆"</span></span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"specificationList"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"id"</span>: <span class="number">101</span>,</span><br><span class="line">      <span class="attr">"originalPrice"</span>: <span class="number">1000</span>,</span><br><span class="line">      <span class="attr">"discountPrice"</span>: <span class="number">1000</span>,</span><br><span class="line">      <span class="attr">"factorIdList"</span>: [</span><br><span class="line">        <span class="number">11</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>factorGroupList</code> 是一个数组，里面的每一项都代表该商品的一个因子组，比如 “漆类”。在因子组中，<code>list</code> 字段中是具体的因子，比如：“普通漆”、“金属漆”。</li>
+<li><code>specificationList</code> 是一个数组，里面的每一项都代表该商品的一种可用规格。
+<ul>
+<li><code>originalPrice</code> 是原价，<code>discountPrice</code> 是折扣价，如果折扣价等于原价，则没有折扣价，这里的单位为分。</li>
+<li><code>factorIdList</code> 是一个数组，里面的每一项代表着该规格所包含的因子id。</li>
+</ul>
+</li>
+</ul>
+<h2 id="算法思路">算法思路</h2>
+<p>因子一共有三种状态，所以在 <code>FactorEntity</code> 里创建了一个枚举类 <code>Status</code>，并新增一个 <code>Status</code> 类型的 <code>status</code> 字段来标识当前因子的状态。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 因子状态</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">enum</span> <span class="class"><span class="keyword">class</span> <span class="title">Status</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 不可用</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    DISABLED,</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 可用</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    AVAILABLE,</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 选中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    SELECTED</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>考虑到选择规格的逻辑其实和UI逻辑相对独立，所以专门新建了一个类 <code>ChooseSpecificationCalculator</code> 来处理选择规格的计算。</p>
+<h3 id="初始化">初始化</h3>
+<p>创建一个列表来装当前选中的因子，在选中和取消选中因子的时候对该列表进行增加或者删除因子的操作；</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 选中因子列表</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> selectedFactorList = ArrayList&lt;FactorEntity&gt;()</span><br></pre></td></tr></table></figure>
+<p>在  <code>FactorEntity</code>  中新增一个字段 <code>specificationList</code> 放所有包含该因子的规格，这样后续处理该因子的时候不必每次都遍历整个规格列表，只需要在初始化的时候对每一个因子遍历一次整个规格列表就好。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">product.factorGroupList.forEach &#123; factorGroup -&gt;</span><br><span class="line">    factorGroup.list.forEach &#123; factor -&gt;</span><br><span class="line">        factor.specificationList.addAll(product.specificationList.filter &#123;</span><br><span class="line">            it.factorIdList.contains(factor.id)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对每一个因子组遍历一次，删除 <code>specificationList</code> 为空的因子，然后再遍历因子组列表，删除因子数为空的因子组，给剩余的每一个因子 <code>status</code> 赋值为  <code>AVAILABLE</code>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 移除没有规格的因子</span></span><br><span class="line">product.factorGroupList.forEach &#123; factorGroup -&gt;</span><br><span class="line">    factorGroup.list = factorGroup.list.filter &#123;</span><br><span class="line">        it.specificationList.isNotEmpty()</span><br><span class="line">    &#125; <span class="keyword">as</span> ArrayList&lt;FactorEntity&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 移除没有因子的因子组</span></span><br><span class="line">product.factorGroupList = product.factorGroupList.filter &#123;</span><br><span class="line">    it.list.isNotEmpty()</span><br><span class="line">&#125; <span class="keyword">as</span> ArrayList&lt;FactorGroupEntity&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认所有因子可用（经过上一步的筛选，剩下的因子至少包含一个规格，在没有选中因子的时候，所有的因子都是可用的）</span></span><br><span class="line">product.factorGroupList.forEach &#123; factorGroup -&gt;</span><br><span class="line">    factorGroup.list.forEach &#123; factor -&gt;</span><br><span class="line">        factor.status = FactorEntity.Status.AVAILABLE</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：这里之所以这么处理是因为需求要求删除无用的因子，如果你们的需求需要保留不可用因子的话，可以判断 <code>specificationList</code> 是否为空，为空的 <code>status</code> 赋值为  <code>DISABLED</code>，不为空的 <code>status</code> 赋值为  <code>AVAILABLE</code>。</p>
+</blockquote>
+<h3 id="选中因子">选中因子</h3>
+<p>只处理可用状态的因子，如果当前因子组存在选中因子，则将该因子变为可用状态，并移除已选中因子列表。然后将本次操作的因子状态置为选中状态，并加入已选中因子列表，然后更新所有因子的状态。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">selectedFactor</span><span class="params">(factor: <span class="type">FactorEntity</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (factor.status != FactorEntity.Status.AVAILABLE) &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果当前因子组存在选中因子，则将该因子变为可用状态</span></span><br><span class="line">    <span class="keyword">val</span> factorGroup = product.factorGroupList.find &#123; it.list.contains(factor) &#125;!!</span><br><span class="line">    factorGroup.list.find &#123; it.status == FactorEntity.Status.SELECTED &#125;?.let &#123;</span><br><span class="line">        removeSelectedFactor(it)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    addSelectedFactor(factor)</span><br><span class="line">    updateAllFactorStatus(factor)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="取消选中因子">取消选中因子</h3>
+<p>只处理处理选中状态的因子，将因子状态置为可用状态，并移除已选中因子列表，然后更新所有因子的状态。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">unselectedFactor</span><span class="params">(factor: <span class="type">FactorEntity</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (factor.status != FactorEntity.Status.SELECTED) &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    removeSelectedFactor(factor)</span><br><span class="line">    updateAllFactorStatus(factor)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="更新因子状态">更新因子状态</h3>
+<p>这里是算法的核心部分，这里拿判断因子 <code>A</code> 的状态为例。</p>
+<p>使用已选中因子列表的因子 <code>id</code> 加上因子 <code>A</code> 的 <code>id</code> 构成一个集合 <code>B</code>，然后去遍历因子 <code>A</code> 的 <code>specificationList</code> 中的规格，看是否能找到一个规格满足集合 <code>B</code> 是其 <code>factorIdList</code> 的子集。</p>
+<p>在这里，判断一个集合是另一个集合的子集采用的是 <code>containsAll</code> 方法，你如果需要考虑优化的话，可以参考淘宝团队的<a href="http://git.shepherdwind.com/sku-search-algorithm.html" target="_blank" rel="noopener">sku组合查询算法探索</a>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> find = factor.specificationList.find &#123; specification -&gt;</span><br><span class="line">    specification.factorIdList.containsAll(factorIdList)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (find == <span class="literal">null</span>) &#123;</span><br><span class="line">    factor.status = FactorEntity.Status.DISABLED</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    factor.status = FactorEntity.Status.AVAILABLE</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="获得选中规格">获得选中规格</h3>
+<p>如果选中因子列表为空，则返回 <code>null</code>。</p>
+<p>拿出选中因子列表中的第一个因子，遍历该因子的 <code>specificationList</code> 字段中的每一个规格，如果发现有规格满足其字段 <code>factorIdList</code> 的数量等于 <code>selectedFactorList</code> 的数量 ，<code>selectedFactorList</code> 构成的因子 <code>id</code> 集合是其<code>factorIdList</code> 的子集，则该规格为当前因子构成的规格。</p>
+<p>如果遍历完后还找不到对应的规格，则返回 <code>null</code>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">getSelectedSpecification</span><span class="params">()</span></span>: SpecificationEntity? &#123;</span><br><span class="line">    <span class="keyword">if</span> (selectedFactorList.isEmpty()) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 对包含选中因子列表中第一个的因子的规格进行遍历，查看当前选中的因子列表是否能构成一个规格</span></span><br><span class="line">    <span class="keyword">return</span> selectedFactorList.first().specificationList.find &#123; specification -&gt;</span><br><span class="line">        specification.factorIdList.size == selectedFactorList.size &amp;&amp;</span><br><span class="line">                specification.factorIdList.containsAll(selectedFactorIdList)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="默认选中-2">默认选中</h3>
+<p>一开始的时候，觉得这里是一个难点，但是等把上面的算法都实现后，回过头来考虑这个问题的时候，问题已经变得很简单了。</p>
+<p>直接遍历因子组列表，从因子组中找到第一个可用的因子，选中它，如果能构成一个规格则结束，否则继续选中下一个因子组中的第一个可用因子，直到构成一个规格。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">run <span class="symbol">breaking@</span>&#123;</span><br><span class="line">    product.factorGroupList.forEach <span class="symbol">forEach1@</span>&#123; factorGroup -&gt;</span><br><span class="line">        factorGroup.list.forEach <span class="symbol">forEach2@</span>&#123; factor -&gt;</span><br><span class="line">            <span class="keyword">if</span> (factor.status == FactorEntity.Status.AVAILABLE) &#123;</span><br><span class="line">                <span class="comment">// 选中该因子</span></span><br><span class="line">                selectedFactor(factor)</span><br><span class="line">                <span class="keyword">if</span> (getSelectedSpecification() != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="comment">// 找到规格，结束寻找</span></span><br><span class="line">                    <span class="keyword">return</span><span class="symbol">@breaking</span></span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span><span class="symbol">@forEach1</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结">总结</h2>
+<p>这个算法和淘宝等商城App的选择规格算法虽然有一定的差异性，但是把删除的规格当作已经卖完的规格，再加上规格数量，那么就和淘宝等商城App的逻辑差不多了。</p>
+<p>项目源码：<a href="https://github.com/TaylorKunZhang/android/tree/master/choose-specification" target="_blank" rel="noopener">choose-specification</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/SKU/" rel="tag"><i class="fa fa-tag"></i> SKU</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/18/cmake-tutorial-4/" rel="next" title="CMake使用教程(四)">
+                  <i class="fa fa-chevron-left"></i> CMake使用教程(四)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/03/31/android-componentization-guide/" rel="prev" title="Android组件化开发规范">
+                  Android组件化开发规范 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#需求"><span class="nav-text">需求</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#灵活的因子"><span class="nav-text">灵活的因子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#默认选中"><span class="nav-text">默认选中</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后端返回数据"><span class="nav-text">后端返回数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算法思路"><span class="nav-text">算法思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化"><span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选中因子"><span class="nav-text">选中因子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#取消选中因子"><span class="nav-text">取消选中因子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新因子状态"><span class="nav-text">更新因子状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获得选中规格"><span class="nav-text">获得选中规格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#默认选中-2"><span class="nav-text">默认选中</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="张坤">
+  <p class="site-author-name" itemprop="name">张坤</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/TaylorKunZhang" title="GitHub &rarr; https://github.com/TaylorKunZhang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:TaylorKunZhang@gmail.com" title="E-Mail &rarr; mailto:TaylorKunZhang@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 – <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张坤</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.4.0</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-user"></i>
+    </span>
+    <span class="site-uv" title="总访客量">
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+    <span class="post-meta-divider">|</span>
+  
+    <span class="post-meta-item-icon">
+      <i class="fa fa-eye"></i>
+    </span>
+    <span class="site-pv" title="总访问量">
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/muse.js?v=7.4.0"></script>
+
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
