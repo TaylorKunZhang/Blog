@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-taylor.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-taylor.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-taylor.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="进行组件化开发有一段时间了，不久后就要开始一个新项目了，为此整理了目前项目中使用的组件化开发规范，方便在下一个项目上使用。本文的重点是介绍规范和项目架构，仅提供示例代码举例，目前不打算提供示例Demo。如果你还不了解什么是组件化以及如何进行组件化开发的话，建议请先看其他组件化入门文章。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android组件化开发规范">
+<meta property="og:url" content="http://example.com/2020/03/31/android-componentization-guide/index.html">
+<meta property="og:site_name" content="张坤的笔记">
+<meta property="og:description" content="进行组件化开发有一段时间了，不久后就要开始一个新项目了，为此整理了目前项目中使用的组件化开发规范，方便在下一个项目上使用。本文的重点是介绍规范和项目架构，仅提供示例代码举例，目前不打算提供示例Demo。如果你还不了解什么是组件化以及如何进行组件化开发的话，建议请先看其他组件化入门文章。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2020/03/31/android-componentization-guide/project-structure.png">
+<meta property="og:image" content="http://example.com/2020/03/31/android-componentization-guide/module-code-structure.png">
+<meta property="og:image" content="http://example.com/2020/03/31/android-componentization-guide/module-debug-structure.png">
+<meta property="article:published_time" content="2020-03-31T08:11:47.000Z">
+<meta property="article:modified_time" content="2021-03-21T03:59:50.000Z">
+<meta property="article:author" content="张坤">
+<meta property="article:tag" content="组件化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2020/03/31/android-componentization-guide/project-structure.png">
+
+<link rel="canonical" href="http://example.com/2020/03/31/android-componentization-guide/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Android组件化开发规范 | 张坤的笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张坤的笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/TaylorKunZhang" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/31/android-componentization-guide/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="张坤">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张坤的笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android组件化开发规范
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-31 16:11:47" itemprop="dateCreated datePublished" datetime="2020-03-31T16:11:47+08:00">2020-03-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-21 11:59:50" itemprop="dateModified" datetime="2021-03-21T11:59:50+08:00">2021-03-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>进行组件化开发有一段时间了，不久后就要开始一个新项目了，为此整理了目前项目中使用的组件化开发规范，方便在下一个项目上使用。本文的重点是介绍规范和项目架构，仅提供示例代码举例，目前不打算提供示例Demo。如果你还不了解什么是组件化以及如何进行组件化开发的话，建议请先看其他组件化入门文章。</p>
+<span id="more"></span>
+<h2 id="定义">定义</h2>
+<p>组件是 <code>Android</code> 项目中一个相对独立的功能模块，是一个抽象的概念，<code>module</code> 是 <code>Android</code> 项目中一个相对独立的代码模块。</p>
+<p>在组件化开发的早期，一个组件就只有一个 <code>module</code>，导致很多代码和资源都会下沉到 <code>common</code> 中，导致 <code>common</code> 会变得很臃肿。有的文章说，专门建立一个 <code>module</code> 来存放通用资源，我感觉这样是治标不治本，直到后面看到<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/6Q818XA5FaHd7jJMFBG60w">微信Android模块化架构重构实践</a>这篇文章，里面的&quot;模块的一般组织方式&quot;一节提到一个模块应该有多个工程，然后开始在项目对 <code>module</code> 进行拆分。</p>
+<p>一般情况下，一个组件有两个 <code>module</code>，一个轻量级的 <code>module</code> 提供外部组件需要和本组件进行交互的接口方法及一些外部组件需要的资源，另一个重量级的 <code>module</code> 完成组件实际的功能和实现轻量级 <code>module</code> 定义的接口方法。</p>
+<p><code>module</code> 的命名规范请参考<a href="#module%E5%90%8D">module名</a>，在下文中使用 <code>module-api</code> 代表轻量级的 <code>module</code>，使用 <code>module-impl</code> 代表重量级的 <code>module</code>。</p>
+<h2 id="common组件">common组件</h2>
+<p><code>common</code> 是一个特殊的组件，不区分轻量级和重量级，它是项目中最底层的组件，基本上所有的其他组件都会依赖 <code>common</code> 组件，<code>common</code> 中放项目中所有弱业务逻辑的代码和解决循环依赖的代码和资源。</p>
+<p>一个完整的项目的架构如下：</p>
+<p><img src="project-structure.png" alt=""></p>
+<h3 id="弱业务逻辑代码">弱业务逻辑代码</h3>
+<p>何为弱业务逻辑代码？简单来说，就是有一定的业务逻辑，但是这个业务逻辑对于项目中其他组件来说通用的。</p>
+<p>比如在 <code>common</code> 组件集成网络请求库，创建一个 <code>HttpTool</code> 工具类，负责初始化网络请求框架，定义网络请求方法，实现组装通用请求参数以及处理全局通用错误等，对于其他组件直接通过这个工具类进行网络请求就可以了。</p>
+<p>比如定义界面基类，处理一些通用业务逻辑，比如接入统计分析框架。</p>
+<h3 id="解决循环依赖的代码和资源">解决循环依赖的代码和资源</h3>
+<p>何为解决循环依赖的代码和资源？比如说 <code>module-a-api</code> 有一个类 <code>C</code>，<code>module-b-api</code> 中有一个类 <code>D</code>，在 <code>module-a-api</code> 中需要使用 <code>D</code>，在 <code>module-b-api</code> 中需要使用 <code>C</code>，这样就会造成  <code>module-a-api</code> 需要依赖  <code>module-b-api</code>，而 <code>module-b-api</code> 也会依赖 <code>module-a-api</code>，这就造成了循环依赖，在 <code>Android Studio</code> 中会编译失败。</p>
+<p>解决循环依赖的方案就是将 <code>C</code> 和 <code>D</code> 其中的一个，或者两个都下沉到 <code>common</code> 组件中，因为 <code>module-a-api</code> 和  <code>module-b-api</code> 都依赖了 <code>common</code> 组件，至于具体下沉几个，这个根据具体的情况而定，但是原则是<strong>下沉到 <code>common</code> 组件的东西越少越好。</strong></p>
+<p>上面的举的例子是代码，资源文件同样也可能会有这个问题。</p>
+<h2 id="module代码结构">module代码结构</h2>
+<p>一个组件通常含有一个或多个功能点，比如对于用户组件，它有关于界面、意见反馈、修改账户密码等功能点，在 <code>module</code> 中为每一个功能点创建一个路径，里面放实现该功能的代码，比如 <code>Activity</code>、<code>Dialog</code> 、<code>Adapter</code> 等。除此之外，为了集中管理组件内部资源和统一编码习惯，特地将一部分的通用功能路径固定下来。这些路径包括 <code>api</code>、<code>provider</code>、<code>tool</code> 等。</p>
+<p>一般情况下 <code>module</code> 的代码架构如下图：</p>
+<p><img src="module-code-structure.png" alt=""></p>
+<h3 id="api">api</h3>
+<p>该路径下放 <code>module</code> 内部使用到的所有网络请求路径和方法，一般使用一个类就够了，比如：<code>UserApi</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> UserApi &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取个人中心数据</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getPersonCenterData</span><span class="params">()</span></span>: GetRequest &#123;</span><br><span class="line">        <span class="keyword">return</span> HttpTool.<span class="keyword">get</span>(ApiVersion.v1_0_0 + <span class="string">&quot;authUser/myCenter&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ApiVersion</code> 全局管理目前项目中使用的所有 <code>api</code> 版本，应当定义在 <code>common</code> 组件的 <code> api</code> 路径下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> ApiVersion &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> v1_0_0 = <span class="string">&quot;v1/&quot;</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> v1_1_0 = <span class="string">&quot;v1_1/&quot;</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> v1_2_2 = <span class="string">&quot;v1_2_2/&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="entity">entity</h3>
+<p>该路径下放 <code>module</code> 内部使用到的所有实体类（网络请求返回的数据类）。</p>
+<p>对于所有从服务器获取的字段，全部定义在构造函数中，且实体类应当实现 <code>Parcelable</code> ，并使用 <code>@Parcelize</code> 注解。对于客户端使用而自己定义的字段，基本上定义为普通成员字段，并使用 <code>@IgnoredOnParcel</code> 注解，如果需要在界面间传递客户端定义的字段，可以将该字段定义在构造函数中，但是必须注明是客户端定义的字段。</p>
+<p>示例如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Parcelize</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProductEntity</span></span>(</span><br><span class="line">    <span class="comment">// 产品名称</span></span><br><span class="line">    <span class="keyword">var</span> name: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 产品图标</span></span><br><span class="line">    <span class="keyword">var</span> icon: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 产品数量（客户端定义字段）</span></span><br><span class="line">    <span class="keyword">var</span> count: <span class="built_in">Int</span> = <span class="number">0</span></span><br><span class="line">) : Parcelable &#123;</span><br><span class="line">    <span class="comment">// 用户是否选择本产品</span></span><br><span class="line">    <span class="meta">@IgnoredOnParcel</span></span><br><span class="line">    <span class="keyword">var</span> isSelected = <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中 <code>name</code> 和 <code>icon</code> 是从服务器获取的字段，而 <code>count</code> 和 <code>isSelected</code> 是客户端自己定义的字段。</p>
+<h3 id="event">event</h3>
+<p>该路径下放 <code>module</code> 内部使用的事件相关类。对于使用了 <code>EventBus</code> 及类似框架的项目，放事件类，对于使用了 <code>LiveEventBus</code> 的项目，里面只需要放一个类就好，比如：<code>UserEvent</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> UserEvent &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 更新用户信息成功事件</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">val</span> updateUserInfoSuccessEvent: LiveEventBus.Event&lt;<span class="built_in">Unit</span>&gt;</span><br><span class="line">        <span class="keyword">get</span>() = LiveEventBus.<span class="keyword">get</span>(<span class="string">&quot;user_update_user_info_success&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：对于使用 <code>LiveEventBus</code> 的项目，事件的命名必须用组件名作为前缀，防止事件名重复。</p>
+</blockquote>
+<h3 id="route">route</h3>
+<p>该路径下放 <code>module</code> 内部所使用到的界面路径和跳转方法，一般使用一个类就够了，比如：<code>UserRoute</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> UserRoute &#123;</span><br><span class="line">    <span class="comment">// 关于界面</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> ABOUT = <span class="string">&quot;/user/about&quot;</span></span><br><span class="line">    <span class="comment">// 常见问题（H5）</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> FAQ = <span class="string">&quot;FAQ/&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 跳转至关于界面</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">toAbout</span><span class="params">()</span></span>: RouteNavigation &#123;</span><br><span class="line">        <span class="keyword">return</span> RouteNavigation(ABOUT)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 跳转至常见问题（H5）</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">toFAQ</span><span class="params">()</span></span>: RouteNavigation? &#123;</span><br><span class="line">        <span class="keyword">return</span> RouteUtil.getServiceProvider(IH5Service::<span class="keyword">class</span>.java)</span><br><span class="line">            ?.toH5Activity(FAQ)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：对于组件内部会跳转的H5界面链接也应当写在路由类中。</p>
+</blockquote>
+<h3 id="provider">provider</h3>
+<p>该路径下放对外部 <code>module</code> 提供的服务，一般使用一个类就够了。在 <code>module-api</code>  中是一个接口类，在 <code>module-impl</code> 中是该接口类的实现类。</p>
+<p>目前采用 <a target="_blank" rel="noopener" href="https://github.com/alibaba/ARouter">ARouter</a> 作为组件化的框架，为了解耦，对其进行了封装，封装示例代码如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typealias</span> Route = com.alibaba.android.arouter.facade.<span class="keyword">annotation</span>.Route</span><br><span class="line"></span><br><span class="line"><span class="keyword">object</span> RouteUtil &#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">getServiceProvider</span><span class="params">(service: <span class="type">Class</span>&lt;<span class="type">out</span> <span class="type">T</span>&gt;)</span></span>: T? &#123;</span><br><span class="line">        <span class="keyword">return</span> ARouter.getInstance().navigation(service)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteNavigation</span></span>(path: String) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> postcard = ARouter.getInstance().build(path)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">param</span><span class="params">(key: <span class="type">String</span>, value: <span class="type">Int</span>)</span></span>: RouteNavigation &#123;</span><br><span class="line">        postcard.withInt(key, value)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="示例">示例</h4>
+<p>这里介绍如何在外部 <code>module</code> 和 <code>user-impl</code> 跳转至用户组件中的关于界面。</p>
+<h5 id="准备工作">准备工作</h5>
+<p>在 <code>user-impl</code> 中创建路由类，编写关于界面的路由和服务路由及跳转至关于界面方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> UserRoute &#123;</span><br><span class="line">    <span class="comment">// 关于界面</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> ABOUT = <span class="string">&quot;/user/about&quot;</span></span><br><span class="line">    <span class="comment">// 用户组件服务</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> USER_SERVICE = <span class="string">&quot;/user/service&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 跳转至关于界面</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">toAbout</span><span class="params">()</span></span>: RouteNavigation &#123;</span><br><span class="line">        <span class="keyword">return</span> RouteNavigation(ABOUT)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在关于界面使用路由：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Route(path = UserRoute.ABOUT)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AboutActivity</span> : <span class="type">MyBaseActivity</span></span>() &#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>user-api</code> 中定义跳转界面方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IUserService</span> : <span class="type">IServiceProvider &#123;</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 跳转至关于界面</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">toAbout</span><span class="params">()</span></span>: RouteNavigation</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>user-impl</code> 中实现跳转界面方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Route(path = UserRoute.USER_SERVICE)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserServiceImpl</span> : <span class="type">IUserService &#123;</span></span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">toAbout</span><span class="params">()</span></span>: RouteNavigation &#123;</span><br><span class="line">        <span class="keyword">return</span> UserRoute.toAbout()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="界面跳转">界面跳转</h5>
+<p>在 <code>user-impl</code> 中可以直接跳转到关于界面：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UserRoute.toAbout().navigation(<span class="keyword">this</span>)</span><br></pre></td></tr></table></figure>
+<p>假设 <code>module-a</code> 需要跳转到关于界面，那么先在 <code>module-a</code> 中配置依赖：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    ...</span><br><span class="line">    implementation project(<span class="string">&#x27;:user-api&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>module-a</code> 中使用 <strong><code>provider </code></strong> 跳转到关于界面：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RouteUtil.getServiceProvider(IUserService::<span class="keyword">class</span>.java)</span><br><span class="line">    ?.toAbout()</span><br><span class="line">    ?.navigation(<span class="keyword">this</span>)</span><br></pre></td></tr></table></figure>
+<h5 id="module依赖关系">module依赖关系</h5>
+<p>此时各个 <code>module</code> 的依赖关系如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">common：基础库、第三方库</span><br><span class="line">user-api：common</span><br><span class="line">user-impl：common、user-api</span><br><span class="line">module-a：common、user-api</span><br><span class="line">App壳：common、user-api、user-impl、module-a、...</span><br></pre></td></tr></table></figure>
+<h3 id="tool">tool</h3>
+<p>该路径下放 <code>module</code> 内部使用的工具方法，一般一个类就够了，比如：<code>UserTool</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> UserTool &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 该用户是否是会员</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> gradeId 会员等级id</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">isMembership</span><span class="params">(gradeId: <span class="type">Int</span>)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> gradeId &gt; <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="cache">cache</h3>
+<p>该路径下放 <code>module</code> 使用的缓存方法，一般一个类就够了，比如：<code>UserCache</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> UserCache &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 搜索历史记录列表</span></span><br><span class="line">    <span class="keyword">var</span> searchHistoryList: ArrayList&lt;String&gt;</span><br><span class="line">        <span class="keyword">get</span>() &#123;</span><br><span class="line">            <span class="keyword">val</span> cacheStr = CacheTool.userCache.getString(SEARCH_HISTORY_LIST)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">if</span> (cacheStr == <span class="literal">null</span>) &#123;</span><br><span class="line">                ArrayList()</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                JsonUtil.parseArray(cacheStr, String::<span class="keyword">class</span>.java) ?: ArrayList()</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">set</span>(value) &#123;</span><br><span class="line">            CacheTool.userCache.put(SEARCH_HISTORY_LIST, JsonUtil.toJson(value))</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 搜索历史记录列表</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> SEARCH_HISTORY_LIST = <span class="string">&quot;user_search_history_list&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：</p>
+<ol>
+<li>缓存Key的命名必须用组件名作为前缀，防止缓存Key重复。</li>
+<li><code>CacheTool.userCache</code> 并不是指用户组件的缓存，而是用户的缓存，即当前登录账号的缓存，每个账号会单独存一份数据，相互之间没有干扰。与之对应的是 <code>CacheTool.globalCache</code>，全局缓存，所有的账号会共用一份数据。</li>
+</ol>
+</blockquote>
+<h2 id="两种module的区别">两种module的区别</h2>
+<p><code>module-api</code> 中放的都是外部组件需要的，或者说外部组件和 <code>module-impl</code> 都需要的，其他的都应当放在 <code>module-impl</code> 中，对于外部组件需要的但是能通过 <strong><code>provider</code></strong> 方式提供的，都应当把具体的实现放在 <code>module-impl</code> 中，<code>module-api</code> 中只是放一个接口方法。</p>
+<p>下表列举项目开发中哪些东西能否放 <code>module-api</code> 中：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>能否放 <code>module-api</code></th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功能界面(Activity、Fragment、Dialog)</td>
+<td>不能</td>
+<td>通过 <strong><code>provider</code></strong> 方式提供使用</td>
+</tr>
+<tr>
+<td>基类界面</td>
+<td>部分能</td>
+<td>外部 <code>module</code> 需要使用的可以，其他的放 <code>module-impl</code> 中</td>
+</tr>
+<tr>
+<td>adapter</td>
+<td>部分能</td>
+<td>外部 <code>module</code> 需要使用的可以，其他的放 <code>module-impl</code> 中</td>
+</tr>
+<tr>
+<td>provider</td>
+<td>部分能</td>
+<td>只能放接口类，实现类放 <code>module-impl</code> 中</td>
+</tr>
+<tr>
+<td>tool</td>
+<td>部分能</td>
+<td>外部 <code>module</code> 需要使用的可以，其他的放 <code>module-impl</code> 中</td>
+</tr>
+<tr>
+<td>api、route、cache</td>
+<td>不能</td>
+<td>通过 <strong><code>provider</code></strong> 方式提供使用</td>
+</tr>
+<tr>
+<td>entity</td>
+<td>部分能</td>
+<td>外部 <code>module</code> 需要使用的可以，其他的放 <code>module-impl</code> 中</td>
+</tr>
+<tr>
+<td>event</td>
+<td>部分能</td>
+<td>对使用 <code>EventBus</code> 及类似框架的项目，外部组件需要的可以，其他还是放 <code>module-impl</code> 中<br/>对于使用了 <code>LiveEventBus</code> 的项目不能，通过 <strong><code>provider</code></strong> 方式提供使用</td>
+</tr>
+<tr>
+<td>资源文件和资源变量</td>
+<td>部分能</td>
+<td>需要在 <code>xml</code> 文件中使用的可以， 其他的通过 <strong><code>provider</code></strong> 方式提供使用</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>注意：如果仅在 <code>module-impl</code> 中存在工具类，则该工具类命名为 <code>xxTool</code>。如果 <code>module-api</code> 和 <code>module-impl</code> 都存在工具类，则 <code>module-api</code> 中的命名为 <code>xxTool</code>，<code>module-impl</code> 中的命名为 <code>xxTool2</code>。</p>
+</blockquote>
+<h2 id="组件单独调试">组件单独调试</h2>
+<p>在开发过程中，为了查看运行效果，需要运行整个App，比较麻烦，而且可能依赖的其他组件也在开发中，App可能运行不到当前开发的组件。为此可以采用组件单独调试的模式进行开发，减少其他组件的干扰，等开发完成后再切换回 <code>library </code> 的模式。</p>
+<p>在组件单独调试模式下，可以增加一些额外的代码来方便开发和调试，比如新增一个入口 <code>Actvity</code>，作为组件单独运行时的第一个界面。</p>
+<h3 id="示例-2">示例</h3>
+<p>这里介绍在 <code>user-impl</code> 中进行组件单独调试。</p>
+<p>在项目根目录下的 <code>gradle.properties</code> 文件中新增变量 <code>isDebugModule</code>，通过该变量控制是否进行组件单独调试：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 组件单独调试开关，为ture时进行组件单独调试</span></span><br><span class="line"><span class="attr">isDebugModule</span> = <span class="string">false</span></span><br></pre></td></tr></table></figure>
+<p>在 <code>user-impl</code> 的 <code>build.gradle</code> 的顶部增加以下代码来控制 <code>user-impl</code> 在 <code>Applicaton</code> 和 <code>Library</code> 之间进行切换：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (isDebugModule.toBoolean()) &#123;</span><br><span class="line">    apply <span class="attr">plugin:</span> <span class="string">&#x27;com.android.application&#x27;</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    apply <span class="attr">plugin:</span> <span class="string">&#x27;com.android.library&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>user-impl</code> 的 <code>src/main</code> 的目录下创建两个文件夹 <code>release</code> 和 <code>debug</code>，<code>release</code> 中放 <code>library</code> 模式下的 <code>AndroidManifest.xml</code>，<code>debug</code> 放 <code>application</code> 模式下的 <code>AndroidManifest.xml</code>、代码和资源，如下图所示：</p>
+<p><img src="module-debug-structure.png" alt=""></p>
+<p>在 <code>user-impl</code> 的 <code>build.gradle</code> 中配置上面的创建的代码和资源路径：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    ...</span><br><span class="line">    sourceSets &#123;</span><br><span class="line">        <span class="keyword">if</span> (isDebugModule.toBoolean()) &#123;</span><br><span class="line">            main.manifest.srcFile <span class="string">&#x27;src/main/debug/AndroidManifest.xml&#x27;</span></span><br><span class="line">            main.java.srcDirs += <span class="string">&#x27;src/main/debug&#x27;</span></span><br><span class="line">            main.res.srcDirs += <span class="string">&#x27;src/main/debug&#x27;</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            main.manifest.srcFile <span class="string">&#x27;src/main/release/AndroidManifest.xml&#x27;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：完成上述配置后，在 <code>library</code> 模式下，<code>debug</code> 中的代码和资源不会合并到项目中。</p>
+</blockquote>
+<p>最后在 <code>user-impl</code> 的 <code>build.gradle</code> 中配置 <code>applicationId</code>：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        <span class="keyword">if</span> (isDebugModule.toBoolean()) &#123;</span><br><span class="line">            applicationId <span class="string">&quot;cc.tarylorzhang.demo&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果碰到65536的问题，在 <code>user-impl</code> 的 <code>build.gradle</code> 中新增以下配置：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">if</span> (isDebugModule.toBoolean()) &#123;</span><br><span class="line">            multiDexEnabled <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上工作都完成后，将 <code>isDebugModule</code> 的值改为 <code>true</code>，则可以开始单独调试用户组件。</p>
+<h2 id="命名规范">命名规范</h2>
+<h3 id="module名">module名</h3>
+<p>组件名如果是单个单词的，直接使用该单词 + <code>api</code> 或 <code>impl</code> 的后缀作为 <code>module</code> 名，如果是多个单词的，多个单词小写使用 <code>-</code> 字符作为连接符，然后在其基础上加 <code>api</code> 或 <code>impl</code> 的后缀作为 <code>module</code> 名。</p>
+<h4 id="示例-3">示例</h4>
+<p>用户组件(<code>User</code>)，它的 <code>module</code> 名为 <code>user-api</code> 和 <code>user-impl</code>；会员卡组件(<code>MembershipCard</code>)，它的 <code>module</code> 名为 <code>membership-card-api</code> 和 <code>membership-card-impl</code>。</p>
+<h3 id="包名">包名</h3>
+<p>在应用的 <code>applicationId</code> 的基础上增加组件名后缀作为组件基础包名。</p>
+<p>在代码中的包名 <code>module-api</code> 和 <code>module-impl</code> 都直接使用基础包名即可，但是在 <code>Android</code> 中项目 <code>AndroidManifest.xml</code> 文件中的 <code>package</code> 不能重复，否则编译不通过。所以 <code>module-impl</code> 中的 <code>package</code> 使用基础包名，而 <code>module-impl</code> 中的 <code>package</code> 使用基础包名 + <code>api</code> 后缀。</p>
+<blockquote>
+<p>package 重复的时候，会报 Type package.BuildConfig is defined multiple times 的错误。</p>
+</blockquote>
+<h4 id="示例-4">示例</h4>
+<p>应用的 <code>applicationId</code> 为 <code>cc.taylorzhang.demo</code>，对于用户组件(<code>user</code>)，组件基础包名为 <code>cc.taylorzhang.demo.user</code>，则实际包名如下表：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>代码中的包名</th>
+<th>AndroidManifest.xml中的包名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user-api</code></td>
+<td><code>cc.taylorzhang.demo.user</code></td>
+<td><code>cc.taylorzhang.demo.userapi</code></td>
+</tr>
+<tr>
+<td><code>user-impl</code></td>
+<td><code>cc.taylorzhang.demo.user</code></td>
+<td><code>cc.taylorzhang.demo.user</code></td>
+</tr>
+</tbody>
+</table>
+<p>对于多单词的会员卡组件(<code>MembershipCard</code>)，其组件基础包名为 <code>cc.taylorzhang.demo.membershipcard</code>。</p>
+<h3 id="资源文件和资源变量">资源文件和资源变量</h3>
+<p>所有的资源文件：布局文件、图片等全部要增加组件名作为前缀，所有的资源变量：字符串、颜色等也全部要增加组件名作为前缀，防止资源名重复。</p>
+<h4 id="示例-5">示例</h4>
+<ul>
+<li>用户组件(<code>User</code>)，关于界面布局文件命名为：<code>user_activity_about.xml</code>；</li>
+<li>用户组件(<code>User</code>)，关于界面标题字符串命名为：<code>user_about_title</code>；</li>
+<li>会员卡组件(<code>MembershipCard</code>)，会员卡详情界面布局文件，文件名为：<code>membership_card_activity_detail</code>；</li>
+<li>会员卡组件(<code>MembershipCard</code>)，会员卡详情界面标题字符串，文件名为：<code>membership_card_detail_title</code>；</li>
+</ul>
+<h3 id="类名">类名</h3>
+<p>对于类名没必要增加前缀，比如 <code>UserAboutActivity</code>，因为对资源文件和资源变量增加前缀主要是为了避免重复定义资源导致资源被覆盖的问题，而上面的包名命名规范已经避免了类重复的问题，直接命名 <code>AboutActivity</code> 即可。</p>
+<h2 id="全局管理App环境">全局管理App环境</h2>
+<p><code>App</code> 环境一般分为开发、测试和生产环境，不同环境下使用的网络请求地址大概率是不一样的，甚至一些UI都不一样，在打包的时候手动修改很容易有遗漏，产生不必要的 <code>BUG</code>。应当使用 <code>buildConfigField</code> 在打包的时候将当前环境写入 <code>App</code> 中，在代码中根据读取环境变量，根据不同的环境执行不同的操作。</p>
+<h3 id="示例-6">示例</h3>
+<h4 id="准备工作-2">准备工作</h4>
+<p>在 <code>App</code> 壳 的 <code>build.gradle</code> 中给每个<code>buildType</code> 都配置 <code>APP_ENV</code>：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    ...</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        debug &#123;</span><br><span class="line">            buildConfigField <span class="string">&quot;String&quot;</span>, <span class="string">&quot;APP_ENV&quot;</span>, <span class="string">&#x27;\&quot;dev\&quot;&#x27;</span></span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">        release &#123;</span><br><span class="line">            buildConfigField <span class="string">&quot;String&quot;</span>, <span class="string">&quot;APP_ENV&quot;</span>, <span class="string">&#x27;\&quot;release\&quot;&#x27;</span></span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">        ctest &#123;</span><br><span class="line">            initWith release</span><br><span class="line"></span><br><span class="line">            buildConfigField <span class="string">&quot;String&quot;</span>, <span class="string">&quot;APP_ENV&quot;</span>, <span class="string">&#x27;\&quot;test\&quot;&#x27;</span></span><br><span class="line">            matchingFallbacks = [<span class="string">&#x27;release&#x27;</span>]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：测试环境的 <code>buildType</code> 不能使用 <code>test</code> 作为名字，<code>Android Studio</code> 会报 <code>ERROR: BuildType names cannot start with 'test'</code>，这里在 <code>test</code> 前增加了一个 <code>c</code>。</p>
+</blockquote>
+<p>在 <code>common</code> 的 <code>tool</code> 路径下创建一个App环境工具类：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> AppEnvTool &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 开发环境 */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> APP_ENV_DEV = <span class="string">&quot;dev&quot;</span></span><br><span class="line">    <span class="comment">/** 测试环境 */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> APP_ENV_TEST = <span class="string">&quot;test&quot;</span></span><br><span class="line">    <span class="comment">/** 生产环境 */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> APP_ENV_RELEASE = <span class="string">&quot;release&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 当前App环境，默认为开发环境 */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> curAppEnv = APP_ENV_DEV</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">init</span><span class="params">(env: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        curAppEnv = env</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 当前是否处于开发环境 */</span></span><br><span class="line">    <span class="keyword">val</span> isDev: <span class="built_in">Boolean</span></span><br><span class="line">        <span class="keyword">get</span>() = curAppEnv == APP_ENV_DEV</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 当前是否处于测试环境 */</span></span><br><span class="line">    <span class="keyword">val</span> isTest: <span class="built_in">Boolean</span></span><br><span class="line">        <span class="keyword">get</span>() = curAppEnv == APP_ENV_TEST</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 当前是否处于生产环境 */</span></span><br><span class="line">    <span class="keyword">val</span> isRelease: <span class="built_in">Boolean</span></span><br><span class="line">        <span class="keyword">get</span>() = curAppEnv == APP_ENV_RELEASE</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>Application</code> 中初始化App环境工具类：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoApplication</span> : <span class="type">Application</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 初始化App环境工具类</span></span><br><span class="line">        AppEnvTool.<span class="keyword">init</span>(BuildConfig.APP_ENV)</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h4 id="使用App环境工具类">使用App环境工具类</h4>
+<p>这里介绍根据App环境使用不同的网络请求地址：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> CommonApi &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// api开发环境地址</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> API_DEV_URL = <span class="string">&quot;https://demodev.taylorzhang.cc/api/&quot;</span></span><br><span class="line">    <span class="comment">// api测试环境地址</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> API_TEST_URL = <span class="string">&quot;https://demotest.taylorzhang.cc/api/&quot;</span></span><br><span class="line">    <span class="comment">// api生产环境地址</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> API_RELEASE_URL = <span class="string">&quot;https://demo.taylorzhang.cc/api/&quot;</span></span><br><span class="line">    <span class="comment">// api地址</span></span><br><span class="line">    <span class="keyword">val</span> API_URL = getUrlByEnv(API_DEV_URL, API_TEST_URL, API_RELEASE_URL)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// H5开发环境地址</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> H5_DEV_URL = <span class="string">&quot;https://demodev.taylorzhang.cc/m/&quot;</span></span><br><span class="line">    <span class="comment">// H5测试环境地址</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> H5_TEST_URL = <span class="string">&quot;https://demotest.taylorzhang.cc/m/&quot;</span></span><br><span class="line">    <span class="comment">// H5生产环境地址</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> H5_RELEASE_URL = <span class="string">&quot;https://demo.taylorzhang.cc/m/&quot;</span></span><br><span class="line">    <span class="comment">// H5地址</span></span><br><span class="line">    <span class="keyword">val</span> H5_URL = getUrlByEnv(H5_DEV_URL, H5_TEST_URL, H5_RELEASE_URL)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">getUrlByEnv</span><span class="params">(devUrl: <span class="type">String</span>, testUrl: <span class="type">String</span>, releaseUrl: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">when</span> &#123;</span><br><span class="line">            AppEnvTool.isDev -&gt; devUrl</span><br><span class="line">            AppEnvTool.isTest -&gt; testUrl</span><br><span class="line">            <span class="keyword">else</span> -&gt; releaseUrl</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="打包">打包</h4>
+<p>通过不同的命令打包，打出对应的App环境包：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 打开发环境包</span></span><br><span class="line">./gradlew clean assembleDebug</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 打测试环境包</span></span><br><span class="line">./gradlew clean assembleCtest</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 打生产环境包</span></span><br><span class="line">./gradlew clean assembleRelease</span><br></pre></td></tr></table></figure>
+<h2 id="全局管理版本信息">全局管理版本信息</h2>
+<p>项目中的 <code>module</code> 变多之后，如果要修改第三方库和App使用的SDK版本是一件很蛋疼的事情。应当建立一个配置文件进行管理，其他地方使用配置文件中设置的版本。</p>
+<h3 id="示例-7">示例</h3>
+<p>在项目根目录下创建一个配置文件 <code>config.gradle</code>，里面放版本信息：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ext &#123;</span><br><span class="line">    compile_sdk_version = <span class="number">28</span></span><br><span class="line">    min_sdk_version = <span class="number">17</span></span><br><span class="line">    target_sdk_version = <span class="number">28</span></span><br><span class="line"></span><br><span class="line">    arouter_compiler_version = <span class="string">&#x27;1.2.2&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在项目根目录下的 <code>build.gradle</code> 文件中的最上方使用以下代码引入配置文件：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply <span class="attr">from:</span> <span class="string">&quot;config.gradle&quot;</span></span><br></pre></td></tr></table></figure>
+<p>创建 <code>module</code> 后，修改该 <code>module</code> 中的 <code>build.gradle</code> 文件，将 <code>SDK</code> 版本默认值换成配置文件中的变量，按需添加第三方依赖，并使用 <code>$</code> + 配置文件中的变量作为第三方库的版本：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    ...</span><br><span class="line">    compileSdkVersion compile_sdk_version</span><br><span class="line"></span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        ...</span><br><span class="line">        minSdkVersion min_sdk_version</span><br><span class="line">        targetSdkVersion target_sdk_version</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    ...</span><br><span class="line">    kapt <span class="string">&quot;com.alibaba:arouter-compiler:$arouter_compiler_version&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="混淆">混淆</h2>
+<p>混淆文件不应该在 <code>App</code> 壳中集中定义，应当在每个 <code>module</code> 中各自定义自己的混淆。</p>
+<h3 id="示例-8">示例</h3>
+<p>这里介绍配置 <code>user-impl</code> 的混淆，先在 <code>user-impl</code> 的 <code>build.gradle</code> 中配置消费者混淆文件：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        ...</span><br><span class="line">        consumerProguardFiles <span class="string">&#x27;proguard-rules.pro&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>proguard-rules.pro</code> 文件中写入该 <code>module</code> 的混淆：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 实体类</span><br><span class="line">-keepclassmembers class cc.taylorzhang.demo.user.entity.** &#123; *; &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结">总结</h2>
+<p>组件化开发应当遵守&quot;高内聚，低耦合&quot;的原则，尽量少的对外暴露细节。如果用一句话来总结的话，就是代码和资源能放 <code>module-impl</code> 里面的就都放在  <code>module-impl</code>，因为代码隔离问题实在不能放 <code>module-impl</code> 里面的才放 <code>module-api</code>，最后因为涉及到循环依赖问题的才往 <code>common</code> 中放。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E7%BB%84%E4%BB%B6%E5%8C%96/" rel="tag"><i class="fa fa-tag"></i> 组件化</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/16/choose-specification/" rel="prev" title="可以单个因子构成一个SKU的实现">
+      <i class="fa fa-chevron-left"></i> 可以单个因子构成一个SKU的实现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/05/android-format-edit/" rel="next" title="Android如何优雅实现通用格式化编辑">
+      Android如何优雅实现通用格式化编辑 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#common%E7%BB%84%E4%BB%B6"><span class="nav-text">common组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%B1%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E4%BB%A3%E7%A0%81"><span class="nav-text">弱业务逻辑代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E7%9A%84%E4%BB%A3%E7%A0%81%E5%92%8C%E8%B5%84%E6%BA%90"><span class="nav-text">解决循环依赖的代码和资源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#module%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84"><span class="nav-text">module代码结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#api"><span class="nav-text">api</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#entity"><span class="nav-text">entity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#event"><span class="nav-text">event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#route"><span class="nav-text">route</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#provider"><span class="nav-text">provider</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-text">示例</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%95%8C%E9%9D%A2%E8%B7%B3%E8%BD%AC"><span class="nav-text">界面跳转</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#module%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB"><span class="nav-text">module依赖关系</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tool"><span class="nav-text">tool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cache"><span class="nav-text">cache</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E7%A7%8Dmodule%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">两种module的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E5%8D%95%E7%8B%AC%E8%B0%83%E8%AF%95"><span class="nav-text">组件单独调试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-2"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%91%BD%E5%90%8D%E8%A7%84%E8%8C%83"><span class="nav-text">命名规范</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#module%E5%90%8D"><span class="nav-text">module名</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-3"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%85%E5%90%8D"><span class="nav-text">包名</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-4"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E5%92%8C%E8%B5%84%E6%BA%90%E5%8F%98%E9%87%8F"><span class="nav-text">资源文件和资源变量</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-5"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E5%90%8D"><span class="nav-text">类名</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E7%AE%A1%E7%90%86App%E7%8E%AF%E5%A2%83"><span class="nav-text">全局管理App环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-6"><span class="nav-text">示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C-2"><span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8App%E7%8E%AF%E5%A2%83%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-text">使用App环境工具类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%93%E5%8C%85"><span class="nav-text">打包</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E7%AE%A1%E7%90%86%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="nav-text">全局管理版本信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-7"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B7%E6%B7%86"><span class="nav-text">混淆</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-8"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="张坤"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">张坤</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/TaylorKunZhang" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;TaylorKunZhang" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:TaylorKunZhang@gmail.com" title="E-Mail → mailto:TaylorKunZhang@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张坤</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

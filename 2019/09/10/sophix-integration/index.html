@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-taylor.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-taylor.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-taylor.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="热更新很早就想体验一下了，最近工作不是很忙，腾出来一些时间体验了一下，感觉还是挺爽的。 开发环境：  Android Studio 3.5 com.aliyun.ams:alicloud-android-hotfix:3.2.8">
+<meta property="og:type" content="article">
+<meta property="og:title" content="阿里热修复Sophix集成与体验">
+<meta property="og:url" content="http://example.com/2019/09/10/sophix-integration/index.html">
+<meta property="og:site_name" content="张坤的笔记">
+<meta property="og:description" content="热更新很早就想体验一下了，最近工作不是很忙，腾出来一些时间体验了一下，感觉还是挺爽的。 开发环境：  Android Studio 3.5 com.aliyun.ams:alicloud-android-hotfix:3.2.8">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/base-lib.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/project-structure.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/reasons-for-not-using-R8.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/reasons-for-SophixStubApplication-coding-by-java.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/gray-release-tag.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/base-app.gif">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/choose-apk.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/patch-settings.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/patch-advanced-settings.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/add-version.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/add-version-wrong.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/upload_patch.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/local-test-scan-tip.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/local-test-patch.gif">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/gray-release-tag.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/gray-test.gif">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/full-release.jpg">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/placeholder-activity.gif">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/add-so-file.gif">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/modify-style.gif">
+<meta property="og:image" content="http://example.com/2019/09/10/sophix-integration/modify-theme.gif">
+<meta property="article:published_time" content="2019-09-10T02:50:20.000Z">
+<meta property="article:modified_time" content="2021-03-21T03:59:50.000Z">
+<meta property="article:author" content="张坤">
+<meta property="article:tag" content="热修复">
+<meta property="article:tag" content="Sophix">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2019/09/10/sophix-integration/base-lib.jpg">
+
+<link rel="canonical" href="http://example.com/2019/09/10/sophix-integration/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>阿里热修复Sophix集成与体验 | 张坤的笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张坤的笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/TaylorKunZhang" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/09/10/sophix-integration/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="张坤">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张坤的笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          阿里热修复Sophix集成与体验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-09-10 10:50:20" itemprop="dateCreated datePublished" datetime="2019-09-10T10:50:20+08:00">2019-09-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-21 11:59:50" itemprop="dateModified" datetime="2021-03-21T11:59:50+08:00">2021-03-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>热更新很早就想体验一下了，最近工作不是很忙，腾出来一些时间体验了一下，感觉还是挺爽的。</p>
+<p>开发环境：</p>
+<ul>
+<li><code>Android Studio 3.5</code></li>
+<li><code>com.aliyun.ams:alicloud-android-hotfix:3.2.8</code></li>
+</ul>
+<span id="more"></span>
+<h2 id="创建项目">创建项目</h2>
+<p>为了贴近实际的开发场景，在项目中引入了自己创建的基础库框架：</p>
+<p><img src="base-lib.jpg" alt=""></p>
+<p>项目采用了组件化，项目结构如下：</p>
+<ul>
+<li>app：壳项目，包含了 MainActivity 和 Application。</li>
+<li>common：通用组件，包含通用依赖库声明，还有基类界面和组件功能接口。</li>
+<li>launch：启动组件，包含一个 SplashActivity。</li>
+<li>home：首页组件，包含一个HomeFragment。</li>
+<li>user：用户组件，包含一个 UserFragment 和 一个 WebActivity，WebActivity里面是空的，只是声明了一个类，继承自 Activity，没有布局文件，只是在 <code>AndroidManifest.xml</code> 中配置了该类。</li>
+</ul>
+<p><img src="project-structure.jpg" alt=""></p>
+<h2 id="集成Sophix">集成Sophix</h2>
+<h3 id="1-创建产品及应用">1. 创建产品及应用</h3>
+<p>先创建产品及应用，可以参考阿里云官方文档：<a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/53238.html">创建产品及应用</a>。</p>
+<h3 id="2-集成SDK">2. 集成SDK</h3>
+<h4 id="2-1-添加依赖">2.1 添加依赖</h4>
+<p>在项目的 <code>build.gradle</code> 添加：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    maven &#123;</span><br><span class="line">        url <span class="string">&quot;http://maven.aliyun.com/nexus/content/repositories/releases&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 app 的 <code>build.gradle</code> 中添加：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    <span class="comment">// 阿里热修复</span></span><br><span class="line">    implementation <span class="string">&#x27;com.aliyun.ams:alicloud-android-hotfix:3.2.8&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-2-声明权限">2.2 声明权限</h4>
+<p>在 <code>AndroidManifest.xml</code> 中声明 Sophix 需要的权限：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;! -- 网络权限 --&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.INTERNET&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.ACCESS_NETWORK_STATE&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.ACCESS_WIFI_STATE&quot;</span> /&gt;</span></span><br><span class="line">&lt;! -- 外部存储读权限，调试工具加载本地补丁需要 --&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.READ_EXTERNAL_STORAGE&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>READ_EXTERNAL_STORAGE</code>权限属于Dangerous Permissions，仅调试工具获取外部补丁需要，不影响线上发布的补丁加载，调试时请自行做好android6.0以上的运行时权限获取。</p>
+</blockquote>
+<h4 id="2-3-配置账号信息">2.3 配置账号信息</h4>
+<p>在 <code>AndroidManifest.xml</code> 中间的 <code>application</code> 节点下添加如下配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;meta-data</span><br><span class="line">    android:name=&quot;com.taobao.android.hotfix.IDSECRET&quot;</span><br><span class="line">    android:value=&quot;App ID&quot; /&gt;</span><br><span class="line">&lt;meta-data</span><br><span class="line">    android:name=&quot;com.taobao.android.hotfix.APPSECRET&quot;</span><br><span class="line">    android:value=&quot;App Secret&quot; /&gt;</span><br><span class="line">&lt;meta-data</span><br><span class="line">    android:name=&quot;com.taobao.android.hotfix.RSASECRET&quot;</span><br><span class="line">    android:value=&quot;RSA密钥&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>也可以不在这里配置账号信息，因为 App ID/App Secret 将被用于计量计费，处于安全考虑，官方建议在代码中使用 setSecretMetaData 这个方法设置账号信息，这个放在后面讲。</p>
+</blockquote>
+<h4 id="2-4-配置混淆">2.4 配置混淆</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 基线包使用，生成mapping.txt</span><br><span class="line">-printmapping mapping.txt</span><br><span class="line"></span><br><span class="line"># hotfix</span><br><span class="line">-keep class com.taobao.sophix.**&#123;*;&#125;</span><br><span class="line">-keep class com.ta.utdid2.device.**&#123;*;&#125;</span><br><span class="line">-dontwarn com.alibaba.sdk.android.utils.**</span><br><span class="line"></span><br><span class="line"># 防止inline</span><br><span class="line">-dontoptimize</span><br></pre></td></tr></table></figure>
+<h4 id="2-5-不使用R8">2.5 不使用R8</h4>
+<p>在项目的 <code>gradle.properties</code> 文件中添加如下配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 热更新混淆需要使用-applymapping mapping.txt，而R8对这个支持的不是很好，所以暂不使用R8</span><br><span class="line">android.enableR8&#x3D;false</span><br></pre></td></tr></table></figure>
+<p>一般情况下，正式环境的代码是混淆了的，为了让热更新工作正常，对于补丁包，在混淆的时候，需要使用最初包（官方称为基线包）生成的 mapping 文件，这样补丁包中的混淆规则会和最初包保持一致。</p>
+<p>为了达到上述的效果，需要使用<code>-applymapping mapping.txt</code>，在 <code>Android Studio 3.5</code> 上，R8 已经是默认的混淆工具，但是 R8 对这条指令支持的不是很好，我在尝试的时候，一直打包失败，在询问了官方技术支持后，选择不使用 R8。</p>
+<p><img src="reasons-for-not-using-R8.jpg" alt=""></p>
+<h4 id="2-6-初始化SDK">2.6 初始化SDK</h4>
+<h5 id="2-6-1-新建SophixStubApplication">2.6.1 新建SophixStubApplication</h5>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> android.content.Context;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> androidx.annotation.Keep;</span><br><span class="line"><span class="keyword">import</span> androidx.multidex.MultiDex;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.taobao.sophix.SophixApplication;</span><br><span class="line"><span class="keyword">import</span> com.taobao.sophix.SophixEntry;</span><br><span class="line"><span class="keyword">import</span> com.taobao.sophix.SophixManager;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SophixStubApplication</span> <span class="keyword">extends</span> <span class="title">SophixApplication</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Sophix账号信息，如果在AndroidManifest.xml配置了，这里就不需要配置了，</span></span><br><span class="line">    <span class="comment">// 如果在代码中和AndroidManifest.xml同时配置了账号信息，以代码中的为准。</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String APP_ID = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String APP_SECRET = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String RSA_SECRET = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="comment">// 用户自定义aes秘钥, 会对补丁包采用对称加密。</span></span><br><span class="line">    <span class="comment">// 这个参数值必须是16位数字或字母的组合，是和补丁工具设置里面AES Key保持完全一致, </span></span><br><span class="line">    <span class="comment">// 补丁才能正确被解密进而加载。此时平台无感知这个秘钥, </span></span><br><span class="line">    <span class="comment">// 所以不用担心阿里云移动平台会利用你们的补丁做一些非法的事情。</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String AES_KEY = <span class="string">&quot;12djahdaufdaldha&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> OnPatchLoadStatusListener onPatchLoadStatusListener = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 此处SophixEntry应指定真正的Application，并且保证RealApplicationStub类名不被混淆。</span></span><br><span class="line">    <span class="meta">@Keep</span></span><br><span class="line">    <span class="meta">@SophixEntry(Application.class)</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">RealApplicationStub</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">attachBaseContext</span><span class="params">(Context base)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.attachBaseContext(base);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 解决方法数超过65536限制，这个应在initSophix之前调用</span></span><br><span class="line">        <span class="comment">// 原来的Application里面去除MultiDex，避免重复调用导致问题。</span></span><br><span class="line">        MultiDex.install(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">        initSophix();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setOnPatchLoadStatusListener</span><span class="params">(OnPatchLoadStatusListener listener)</span> </span>&#123;</span><br><span class="line">        onPatchLoadStatusListener = listener;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initSophix</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        String appVersion = <span class="string">&quot;0.0.0&quot;</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            appVersion = <span class="keyword">this</span>.getPackageManager()</span><br><span class="line">                    .getPackageInfo(<span class="keyword">this</span>.getPackageName(), <span class="number">0</span>)</span><br><span class="line">                    .versionName;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        SophixManager instance = SophixManager.getInstance();</span><br><span class="line">        instance.setContext(<span class="keyword">this</span>)</span><br><span class="line">                .setAppVersion(appVersion)</span><br><span class="line">                <span class="comment">// 设置账号信息</span></span><br><span class="line">                .setSecretMetaData(APP_ID, APP_SECRET, RSA_SECRET)</span><br><span class="line">                <span class="comment">// 设置自定义aes秘钥</span></span><br><span class="line">                .setAesKey(AES_KEY)</span><br><span class="line">                .setEnableDebug(<span class="keyword">false</span>) </span><br><span class="line">                .setPatchLoadStatusStub((mode, code, info, handlePatchVersion) -&gt; &#123;</span><br><span class="line">                    <span class="keyword">if</span> (onPatchLoadStatusListener != <span class="keyword">null</span>) &#123;</span><br><span class="line">                        onPatchLoadStatusListener.onLoad(mode, code, info, handlePatchVersion);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;)</span><br><span class="line">                .initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">OnPatchLoadStatusListener</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">onLoad</span><span class="params">(<span class="keyword">int</span> mode, <span class="keyword">int</span> code, String info, <span class="keyword">int</span> handlePatchVersion)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="2-6-2-配置SophixStubApplication">2.6.2 配置SophixStubApplication</h5>
+<p>修改 <code>AndroidManifest.xml</code> 文件，移除原本的 Application，设置为 SophixStubApplication：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;application</span><br><span class="line">        android:name=&quot;.application.SophixStubApplication&quot; </span><br><span class="line">        .../&gt;</span><br></pre></td></tr></table></figure>
+<h5 id="2-6-3-注意事项">2.6.3 注意事项</h5>
+<h6 id="2-6-3-1-使用Java编写SophixStubApplication">2.6.3.1 使用Java编写SophixStubApplication</h6>
+<p>在实际项目中，我基本上都是使用 Kotlin 开发，对于 SophixStubApplication 应该使用 Java 编写，参考自 <a target="_blank" rel="noopener" href="https://help.aliyun.com/knowledge_detail/59422.html">Hotfix补丁工具报错排查步骤</a>。</p>
+<p><img src="reasons-for-SophixStubApplication-coding-by-java.jpg" alt=""></p>
+<h6 id="2-6-3-2-不要在SophixStubApplication写业务逻辑">2.6.3.2 不要在SophixStubApplication写业务逻辑</h6>
+<p>SophixStubApplication 是 Sophix 入口类，专门用于初始化 Sophix，不应包含任何业务逻辑。</p>
+<p>此类必须继承自 SophixApplication，onCreate 方法不需要实现。</p>
+<p>此类不应与项目中的其他类有任何互相调用的逻辑，必须完全做到隔离。</p>
+<p>注意原先 Application里不需要再重复初始化 Sophix，并且需要避免混淆原先 Application 类。</p>
+<h4 id="2-7-添加tag（可选）">2.7 添加tag（可选）</h4>
+<p>可以通过 setTags接口 [v3.2.7新增]，设置端上拉取补丁包时的标签，可以支持条件更为丰富的灰度发布，以下为简单示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; tags = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">tags.add(<span class="string">&quot;test&quot;</span>);</span><br><span class="line"><span class="comment">//此处调用在queryAndLoadNewPatch()方法前</span></span><br><span class="line">SophixManager.getInstance().setTags(tags)；</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; tags = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">tags.add(<span class="string">&quot;production&quot;</span>);</span><br><span class="line"><span class="comment">//此处调用在queryAndLoadNewPatch()方法前</span></span><br><span class="line">SophixManager.getInstance().setTags(tags)；</span><br></pre></td></tr></table></figure>
+<p><img src="gray-release-tag.jpg" alt=""></p>
+<p>如上，设置不同的tags，同一版本号下，可以打两个或者多个基线包，线上发布时用production的基线包，测试环境用test的基线包，这样就可以测试同一版本号下的同一个补丁了，两个环境互不影响。tags可以add多个，结构为前后非空字符串即可。生成补丁时，用同样tags的基线包和修复包。</p>
+<h4 id="2-8-处理补丁加载回调">2.8 处理补丁加载回调</h4>
+<p>在 SophixStubApplication 中，并没有写补丁加载回调处理逻辑，而是创建了一个接口，通过观察者模式的方式把处理逻辑放在外面处理。这样的目的是，SophixManager 初始化后热更新才开始工作，写在初始化之前的代码热更新是不能作用到的。</p>
+<p>在本项目中，把处理逻辑放在了实际的 Application 中：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> : <span class="type">Application</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line"></span><br><span class="line">        SophixStubApplication.setOnPatchLoadStatusListener &#123; mode, code, info, handlePatchVersion -&gt;</span><br><span class="line">            <span class="keyword">when</span> (code) &#123;</span><br><span class="line">                PatchStatus.CODE_LOAD_SUCCESS -&gt; &#123;</span><br><span class="line">                    LogUtil.i(<span class="string">&quot;sophix load patch success!&quot;</span>)</span><br><span class="line">                &#125;</span><br><span class="line">                PatchStatus.CODE_LOAD_RELAUNCH -&gt; &#123;</span><br><span class="line">                    <span class="comment">// 补丁加载成功，需要重启App生效</span></span><br><span class="line">                    <span class="comment">// 我这里的逻辑是杀死App，100毫秒后重启App</span></span><br><span class="line">                    LogUtil.i(<span class="string">&quot;sophix preload patch success. restart app to make effect.&quot;</span>)</span><br><span class="line">                    RestartAppTool.restart(<span class="keyword">this</span>, <span class="number">100</span>, packageName)</span><br><span class="line">                    SophixManager.getInstance().killProcessSafely()</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> -&gt; &#123;</span><br><span class="line">                    LogUtil.i(<span class="string">&quot;sophix load error, code is <span class="variable">$code</span>&quot;</span>)</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这里有一点需要注意，不可以直接调用 <code>Process.killProcess(Process.myPid())</code> 来杀进程，这样会扰乱 Sophix 的内部状态。因此如果需要杀死进程，建议调用 <code>SophixManager.getInstance().killProcessSafely() </code> 杀死进程，该方法会在内部做一些适当处理后才杀死本进程。</p>
+</blockquote>
+<h4 id="2-9-增加检查补丁更新逻辑">2.9 增加检查补丁更新逻辑</h4>
+<p>阿里 Sophix 的收费方式是按调用 <strong><code>queryAndLoadNewPatch</code></strong> 方法的次数收费，每月有一定的免费阈值：</p>
+<ul>
+<li>月活设备(MAU): 5万。每个账号，每月5万台设备免费。</li>
+<li>日均查询次数：20次。每个账号下的每个应用平均到每台设备，一天免费查补丁询20次。</li>
+<li>补丁分发：完全不做次数限制，不额外收取流量费。</li>
+</ul>
+<p><strong>请谨慎调用 <code>queryAndLoadNewPatch</code></strong>。</p>
+<p>因为是 Demo，我这里的处理逻辑是很简单，首页有一个按钮，点击一下就调用一次 <code>queryAndLoadNewPatch</code>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">initListener</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.initListener()</span><br><span class="line">  </span><br><span class="line">    btnCheckUpdate.onClick &#123;</span><br><span class="line">        <span class="comment">// 检查更新</span></span><br><span class="line">        LogUtil.i(<span class="string">&quot;检查更新&quot;</span>)</span><br><span class="line">        SophixManager.getInstance().queryAndLoadNewPatch()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="打最初包（基线包）">打最初包（基线包）</h2>
+<p>项目效果：</p>
+<p><img src="base-app.gif" alt=""></p>
+<h3 id="1-备份最初包">1. 备份最初包</h3>
+<p>将 <code>app/build/outputs/apk/release</code> 下的正式包备份，重命名为 <code>app-release-0.apk</code>。</p>
+<h3 id="2-移动maping-txt">2. 移动maping.txt</h3>
+<p>将 <code>app/build/outputs/mapping/release</code> 路径下的 <code>maping.txt </code> 移动到 <code>/app</code> 路径下,</p>
+<h3 id="3-修改混淆文件">3. 修改混淆文件</h3>
+<p>将原来的混淆文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 基线包使用，生成mapping.txt</span><br><span class="line">-printmapping mapping.txt</span><br><span class="line"></span><br><span class="line"># hotfix</span><br><span class="line">-keep class com.taobao.sophix.**&#123;*;&#125;</span><br><span class="line">-keep class com.ta.utdid2.device.**&#123;*;&#125;</span><br><span class="line">-dontwarn com.alibaba.sdk.android.utils.**</span><br><span class="line"></span><br><span class="line"># 防止inline</span><br><span class="line">-dontoptimize</span><br></pre></td></tr></table></figure>
+<p>调整为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 修复后的项目使用，保证混淆结果一致</span><br><span class="line">-applymapping mapping.txt</span><br><span class="line"></span><br><span class="line"># hotfix</span><br><span class="line">-keep class com.taobao.sophix.**&#123;*;&#125;</span><br><span class="line">-keep class com.ta.utdid2.device.**&#123;*;&#125;</span><br><span class="line">-dontwarn com.alibaba.sdk.android.utils.**</span><br><span class="line"></span><br><span class="line"># 防止inline</span><br><span class="line">-dontoptimize</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这个改动是为了接下来打热修复补丁，如果接下来要发新版本（版本号需要变动），则还是使用 <code>-printmapping mapping.txt</code>。</p>
+</blockquote>
+<h2 id="第一次热更新-修改资源">第一次热更新-修改资源</h2>
+<h3 id="1-更新代码">1. 更新代码</h3>
+<ol>
+<li>
+<p>更换Splash的背景图片，不修改图片的名字，注意：SplashActivity没有设置布局文件，而是通过设置主题的方式设置的背景图片：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity</span><br><span class="line">    android:name=&quot;.SplashActivity&quot;</span><br><span class="line">    android:configChanges=&quot;orientation|keyboardHidden|screenSize&quot;</span><br><span class="line">    android:screenOrientation=&quot;portrait&quot;</span><br><span class="line">    android:theme=&quot;@style/SplashTheme&quot; &gt;</span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">&quot;android.intent.action.MAIN&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">category</span> <span class="attr">android:name</span>=<span class="string">&quot;android.intent.category.LAUNCHER&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;SplashTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;AppTheme&quot;</span>&gt;</span></span><br><span class="line"><span class="xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowNoTitle&quot;</span>&gt;</span>true<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowFullscreen&quot;</span>&gt;</span>true<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowContentOverlay&quot;</span>&gt;</span>@null<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">        <span class="comment">&lt;!-- 启动页背景 --&gt;</span></span></span><br><span class="line"><span class="xml">        <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowBackground&quot;</span>&gt;</span>@drawable/launch_splash_1<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>替换首页第一张图片，不修改图片的名字，注意该图片是放在 drawable 文件下。</p>
+<p>替换首页第二张图片，不修改图片的名字，注意该图片是放在 assets 文件下。</p>
+<p>在布局文件中修改按钮文本的颜色。</p>
+<p>在字符串资源文件中修改按钮的文本。</p>
+</li>
+<li>
+<p>替换我的第一张图片，修改图片的名字，注意该图片是放在 drawable 文件下。</p>
+<p>替换我的第二张图片，修改图片的名字，注意该图片是放在 assets 文件下。</p>
+<p>在布局文件中修改按钮文本的颜色。</p>
+<p>在字符串资源文件中修改按钮的文本。</p>
+<p>替换我的跳转至百度按钮点击事件中的toast文案。</p>
+</li>
+</ol>
+<h3 id="2-生成补丁">2. 生成补丁</h3>
+<h4 id="2-1-生成新包">2.1 生成新包</h4>
+<p>运行打包命令，生成新包，重命名为 <code>app-release-1.apk</code>。</p>
+<h4 id="2-2-下载打补丁工具">2.2 下载打补丁工具</h4>
+<p>如果没有打补丁工具 SophixPatchTool，则可以通过点击以下链接下载：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://ams-hotfix-repo.oss-cn-shanghai.aliyuncs.com/SophixPatchTool_macos.zip">点击下载 Mac 版本打包工具</a></li>
+<li><a target="_blank" rel="noopener" href="http://ams-hotfix-repo.oss-cn-shanghai.aliyuncs.com/SophixPatchTool_windows.zip">点击下载 Windows 版本打包工具</a></li>
+<li><a target="_blank" rel="noopener" href="http://ams-hotfix-repo.oss-cn-shanghai.aliyuncs.com/SophixPatchTool_linux.zip">点击下载 Linux 版本打包工具</a></li>
+</ul>
+<h4 id="2-3-选择包">2.3 选择包</h4>
+<p>运行打补丁工具，选择包：</p>
+<p><img src="choose-apk.jpg" alt=""></p>
+<h4 id="2-4-调整设置">2.4 调整设置</h4>
+<p><img src="patch-settings.jpg" alt=""></p>
+<h4 id="2-5-调整高级">2.5 调整高级</h4>
+<p><img src="patch-advanced-settings.jpg" alt=""></p>
+<blockquote>
+<p>注意，这里如果勾选了检查初始化，打补丁工具会检查 SophixStubApplication 中的代码，不能包含非系统API，会报错。如果使用了 AndroidX 的 MultiDex，工具也会报错，可以先不勾选检查初始化，自行确定SophixStubApplication中无其他非系统API的使用，该工具后面会对AndroidX的库进行识别。</p>
+</blockquote>
+<p>其他选项，请按需自行选择是否勾选。</p>
+<h4 id="2-6-生成Patch">2.6 生成Patch</h4>
+<p>点击按钮 <code>GO!</code>，生成补丁。</p>
+<h3 id="3-添加版本">3. 添加版本</h3>
+<p>进入移动研发平台 EMAS -&gt; 选择创建的产品 -&gt; 移动热修复 -&gt; 补丁管理，然后点击添加版本按钮，填写版本。</p>
+<p><img src="add-version.jpg" alt=""></p>
+<p><strong>特别注意</strong>：这里的版本，必须和代码中 <code>setAppVersion</code> 的内容<strong>保持完全一致</strong>，新版控制台版本号已无限制，字符串即可。</p>
+<p>在 SophixStubApplication 的代码中，我们选择的使用App的 <code>versionName</code>  作为 <code>setAppVersion</code> 的参数，那么这里填写的内容就是对应版本 App 的 <code>versionName</code>  。</p>
+<p>我在这里就踩坑了，之前上传 App 到应用市场，应用市场都会读取 Apk 中的版本号，不用手动填写，我以为这里也是一样。以为填写版本号是为了方便用户使用，所以随手就加了 “v” 作为前缀，如下图所示：</p>
+<p><img src="add-version-wrong.jpg" alt=""></p>
+<p>结果，在补丁发布后，App始终都检测不到又新补丁，一度怀疑人生。</p>
+<h3 id="4-上传补丁">4. 上传补丁</h3>
+<p><img src="upload_patch.jpg" alt=""></p>
+<blockquote>
+<p>目前支持的补丁大小最大为30MB，参考自<a target="_blank" rel="noopener" href="https://help.aliyun.com/knowledge_detail/125248.html">移动热修复：补丁大小有什么限制？</a></p>
+</blockquote>
+<h3 id="5-本地测试">5. 本地测试</h3>
+<p><a target="_blank" rel="noopener" href="http://ams-hotfix-repo.oss-cn-shanghai.aliyuncs.com/hotfix_debug_tool-release.apk">下载本地调试工具</a>，把调试工具和 <code>app-release-0.apk</code> 都安装到手机上。</p>
+<p>先打开App，再打开调用工具，点击连接应用，</p>
+<p>鼠标悬停在提示位置：</p>
+<p><img src="local-test-scan-tip.jpg" alt=""></p>
+<p>点击扫描二维码，安装补丁，重启App，查看App是否生效：</p>
+<p><img src="local-test-patch.gif" alt=""></p>
+<h3 id="6-灰度测试">6. 灰度测试</h3>
+<p>灰度发布的时候，可以指定前面提到的tag。</p>
+<p><img src="gray-release-tag.jpg" alt=""></p>
+<p>测试效果：</p>
+<p><img src="gray-test.gif" alt=""></p>
+<h3 id="7-正式上线">7. 正式上线</h3>
+<p>经过本地测试和灰度测试，确认无误后选择全量发布：</p>
+<p><img src="full-release.jpg" alt=""></p>
+<h3 id="8-热更新结果">8. 热更新结果</h3>
+<table>
+<thead>
+<tr>
+<th>变动项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>更换Splash的背景图片，不修改图片的名字，注意该图片是放在 drawable 文件下且通过主题设置</td>
+<td>未生效</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>替换首页第一张图片，不修改图片的名字，注意该图片是放在 drawable 文件下</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>替换首页第二张图片，不修改图片的名字，注意该图片是放在 assets 文件下</td>
+<td>未生效</td>
+</tr>
+<tr>
+<td>在布局文件中修改按钮文本的颜色</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>在字符串资源文件中修改按钮的文本</td>
+<td>生效</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>替换我的第一张图片，修改图片的名字，注意该图片是放在 drawable 文件下</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>替换我的第二张图片，修改图片的名字，注意该图片是放在 assets 文件下</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>在布局文件中修改按钮文本的颜色</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>在字符串资源文件中修改按钮的文本</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>替换我的跳转至百度按钮点击事件中的toast文案</td>
+<td>生效</td>
+</tr>
+</tbody>
+</table>
+<h2 id="第二次热更新-使用占位Activity">第二次热更新-使用占位Activity</h2>
+<h3 id="1-更新代码-2">1. 更新代码</h3>
+<ol>
+<li>为空的 WebActivity 创建布局文件，增加路由，接收路由参数url，用 WebView 显示 url 的内容。</li>
+<li>我的页面跳转至百度按钮点击，跳转至 webActivity，携带参数为百度网页地址。</li>
+<li>更换Splash的背景图片，修改图片的名字。</li>
+</ol>
+<h3 id="2-生成补丁并发布">2. 生成补丁并发布</h3>
+<p>重复的步骤不再展开，新生成的包命名为 <code>app-release-2.apk</code>，<strong>注意选择包的时候，旧包为 <code>app-release-0.apk</code> 而不是 <code>app-release-1.apk</code>。</strong></p>
+<h3 id="3-热更新结果">3. 热更新结果</h3>
+<p><img src="placeholder-activity.gif" alt=""></p>
+<table>
+<thead>
+<tr>
+<th>变动项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>增加空 WebActivity 内容，展示指定 url 的网页内容</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>我的页面跳转至百度按钮点击，跳转至 webActivity，携带参数为百度网页地址。</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>更换Splash的背景图片，修改图片的名字</td>
+<td>不生效</td>
+</tr>
+</tbody>
+</table>
+<h2 id="第三次热更新-新增So和Style">第三次热更新-新增So和Style</h2>
+<h3 id="1-更新代码-3">1. 更新代码</h3>
+<ol>
+<li>
+<p>集成腾讯浏览服务TBS（该框架中包含so文件），将 WebActivity 中的系统 WebView 替换为 TBS 的 WebView。</p>
+</li>
+<li>
+<p>进入 WebActivity 的时候显示一个 Toast，确认当前显示的已经集成 TBS 的 Activity。</p>
+</li>
+<li>
+<p>在我的页面新增两个TextView，除了位置属性外，其他属性全部使用 Style。第一个TextStyle中部分是实际值，部分是引用，第二个 TextStyle 除了 <code>android:gravity</code> 全部使用引用。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;UserTestTextStyle1&quot;</span>&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_width&quot;</span>&gt;</span>80dp<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_height&quot;</span>&gt;</span>30dp<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:gravity&quot;</span>&gt;</span>center<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:background&quot;</span>&gt;</span>@color/common_red_F41<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textSize&quot;</span> <span class="attr">tools:ignore</span>=<span class="string">&quot;SpUsage&quot;</span>&gt;</span>20dp<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textColor&quot;</span>&gt;</span>@color/common_white<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:text&quot;</span>&gt;</span>@string/user_test_style_1<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;UserTestTextStyle2&quot;</span>&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_width&quot;</span>&gt;</span>@dimen/TestText2Width<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_height&quot;</span>&gt;</span>@dimen/TestText2height<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:gravity&quot;</span>&gt;</span>center<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:background&quot;</span>&gt;</span>@color/TestText2Background<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textSize&quot;</span> <span class="attr">tools:ignore</span>=<span class="string">&quot;SpUsage&quot;</span>&gt;</span>@dimen/TestText2TextSize<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textColor&quot;</span>&gt;</span>@color/TestText2TextColor<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:text&quot;</span>&gt;</span>@string/user_test_style_2<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;TestText2Width&quot;</span>&gt;</span>80dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;TestText2height&quot;</span>&gt;</span>30dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;TestText2Background&quot;</span>&gt;</span>#FF4A1E<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;TestText2TextSize&quot;</span>&gt;</span>20dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;TestText2TextColor&quot;</span>&gt;</span>#FFFFFF<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="2-生成补丁并发布-2">2. 生成补丁并发布</h3>
+<p>重复的步骤不再展开，新生成的包命名为 <code>app-release-3.apk</code>，<strong>注意选择包的时候，旧包为 <code>app-release-0.apk</code> 而不是 <code>app-release-2.apk</code>。</strong></p>
+<h3 id="3-热更新结果-2">3. 热更新结果</h3>
+<p><img src="add-so-file.gif" alt=""></p>
+<table>
+<thead>
+<tr>
+<th>变动项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>集成腾讯浏览服务 TBS</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>WebActivity 进入的时候显示 Toast</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>我的页面新增TestView，使用 Style，在 Style 中部分使用实际值，部分使用引用</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>我的页面新增TestView，使用 Style，在 Style 中除了 <code>android:gravity</code> 全部使用引用</td>
+<td>生效</td>
+</tr>
+</tbody>
+</table>
+<h2 id="第四次热更新-修改Style">第四次热更新-修改Style</h2>
+<h3 id="1-更新代码-4">1. 更新代码</h3>
+<p>修改我的页面两个 TextView 的 style，第一个直接修改实际值，第二个修改引用内容的值。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;UserTestTextStyle1&quot;</span>&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_width&quot;</span>&gt;</span>140dp<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_height&quot;</span>&gt;</span>50dp<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:gravity&quot;</span>&gt;</span>center<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:background&quot;</span>&gt;</span>@color/common_green_07<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textSize&quot;</span> <span class="attr">tools:ignore</span>=<span class="string">&quot;SpUsage&quot;</span>&gt;</span>30dp<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textColor&quot;</span>&gt;</span>@color/common_red_F41<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:text&quot;</span>&gt;</span>@string/user_test_style_1_1<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;UserTestTextStyle2&quot;</span>&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_width&quot;</span>&gt;</span>@dimen/TestText2Width<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:layout_height&quot;</span>&gt;</span>@dimen/TestText2height<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:gravity&quot;</span>&gt;</span>center<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:background&quot;</span>&gt;</span>@color/TestText2Background<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textSize&quot;</span> <span class="attr">tools:ignore</span>=<span class="string">&quot;SpUsage&quot;</span>&gt;</span>@dimen/TestText2TextSize<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:textColor&quot;</span>&gt;</span>@color/TestText2TextColor<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:text&quot;</span>&gt;</span>@string/user_test_style_2<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;TestText2Width&quot;</span>&gt;</span>140dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;TestText2height&quot;</span>&gt;</span>50dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;TestText2Background&quot;</span>&gt;</span>#07C27F<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dimen</span> <span class="attr">name</span>=<span class="string">&quot;TestText2TextSize&quot;</span>&gt;</span>30dp<span class="tag">&lt;/<span class="name">dimen</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">color</span> <span class="attr">name</span>=<span class="string">&quot;TestText2TextColor&quot;</span>&gt;</span>#FF4A1E<span class="tag">&lt;/<span class="name">color</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-生成补丁并发布-3">2. 生成补丁并发布</h3>
+<p>重复的步骤不再展开，新生成的包命名为 <code>app-release-4.apk</code>，<strong>注意选择包的时候，旧包为 <code>app-release-0.apk</code> 而不是 <code>app-release-3.apk</code>。</strong></p>
+<h3 id="3-热更新结果-3">3. 热更新结果</h3>
+<p><img src="modify-style.gif" alt=""></p>
+<table>
+<thead>
+<tr>
+<th>变动项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Style直接修改实际值</td>
+<td>生效</td>
+</tr>
+<tr>
+<td>Style修改引用内容的值</td>
+<td>生效</td>
+</tr>
+</tbody>
+</table>
+<h2 id="第五次热更新-修改主题">第五次热更新-修改主题</h2>
+<h3 id="1-更新代码-5">1. 更新代码</h3>
+<p>修改启动页主题，取消全屏，将状态栏颜色修改为红色。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;SplashTheme&quot;</span> <span class="attr">parent</span>=<span class="string">&quot;AppTheme&quot;</span>&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowNoTitle&quot;</span>&gt;</span>false<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowFullscreen&quot;</span>&gt;</span>false<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;colorPrimaryDark&quot;</span>&gt;</span>@color/common_red_F41<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowContentOverlay&quot;</span>&gt;</span>@null<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="comment">&lt;!-- 启动页背景 --&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowBackground&quot;</span>&gt;</span>@drawable/launch_splash_2<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-生成补丁并发布-4">2. 生成补丁并发布</h3>
+<p>重复的步骤不再展开，新生成的包命名为 <code>app-release-5.apk</code>，<strong>注意选择包的时候，旧包为 <code>app-release-0.apk</code> 而不是 <code>app-release-4.apk</code>。</strong></p>
+<h3 id="3-热更新结果-4">3. 热更新结果</h3>
+<p><img src="modify-theme.gif" alt=""></p>
+<table>
+<thead>
+<tr>
+<th>变动项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Style直接修改实际值</td>
+<td>不生效</td>
+</tr>
+</tbody>
+</table>
+<h2 id="总结">总结</h2>
+<p>经过简单几轮测试下来，热更新可以做到以下几点：</p>
+<ol>
+<li>支持对应用Application的代码调整（非SophixStubApplication）;</li>
+<li>支持混淆；</li>
+<li>支持对代码的调整；</li>
+<li>支持 <a target="_blank" rel="noopener" href="https://github.com/alibaba/ARouter">ARouter</a>，开始的时候自己还是有点担心不支持 <a target="_blank" rel="noopener" href="https://github.com/alibaba/ARouter">ARouter</a>。</li>
+<li>支持 res 中资源除主题之外的修改。</li>
+<li>支持更新 assest 中的图片，但是必须是新增图片，即图片名称必须修改，不能使用原图片名称。</li>
+</ol>
+<p>同样也有一些还做不到的：</p>
+<ol>
+<li>不支持修改 <code>AndroidManifest.xml</code>，所以新增 Activity ，新增权限等都不能生效。也不是没有办法解决，Activity 可以通过提前配置空白 Activity 占位的形式解决。</li>
+<li>不支持修改 Activity 的主题，就算只是更换了 Activity 主题背景图片，无论是该图片是新增，还是保留原图片名称，只替换内容，都不支持。</li>
+<li>不支持更新 assest 中的图片内容，保留原图片名称。</li>
+</ol>
+<p>对于官方宣传的应用场景：线上bug紧急修复和快速轻量版本升级，我认为达到了我的预期。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E7%83%AD%E4%BF%AE%E5%A4%8D/" rel="tag"><i class="fa fa-tag"></i> 热修复</a>
+              <a href="/tags/Sophix/" rel="tag"><i class="fa fa-tag"></i> Sophix</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/18/cmake-tutorial-1/" rel="next" title="CMake使用教程(一)">
+      CMake使用教程(一) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="nav-text">创建项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%86%E6%88%90Sophix"><span class="nav-text">集成Sophix</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%88%9B%E5%BB%BA%E4%BA%A7%E5%93%81%E5%8F%8A%E5%BA%94%E7%94%A8"><span class="nav-text">1. 创建产品及应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%9B%86%E6%88%90SDK"><span class="nav-text">2. 集成SDK</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-%E6%B7%BB%E5%8A%A0%E4%BE%9D%E8%B5%96"><span class="nav-text">2.1 添加依赖</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-%E5%A3%B0%E6%98%8E%E6%9D%83%E9%99%90"><span class="nav-text">2.2 声明权限</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-%E9%85%8D%E7%BD%AE%E8%B4%A6%E5%8F%B7%E4%BF%A1%E6%81%AF"><span class="nav-text">2.3 配置账号信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-%E9%85%8D%E7%BD%AE%E6%B7%B7%E6%B7%86"><span class="nav-text">2.4 配置混淆</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-5-%E4%B8%8D%E4%BD%BF%E7%94%A8R8"><span class="nav-text">2.5 不使用R8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-%E5%88%9D%E5%A7%8B%E5%8C%96SDK"><span class="nav-text">2.6 初始化SDK</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-6-1-%E6%96%B0%E5%BB%BASophixStubApplication"><span class="nav-text">2.6.1 新建SophixStubApplication</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-6-2-%E9%85%8D%E7%BD%AESophixStubApplication"><span class="nav-text">2.6.2 配置SophixStubApplication</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-6-3-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-text">2.6.3 注意事项</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#2-6-3-1-%E4%BD%BF%E7%94%A8Java%E7%BC%96%E5%86%99SophixStubApplication"><span class="nav-text">2.6.3.1 使用Java编写SophixStubApplication</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-6-3-2-%E4%B8%8D%E8%A6%81%E5%9C%A8SophixStubApplication%E5%86%99%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91"><span class="nav-text">2.6.3.2 不要在SophixStubApplication写业务逻辑</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-7-%E6%B7%BB%E5%8A%A0tag%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="nav-text">2.7 添加tag（可选）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-8-%E5%A4%84%E7%90%86%E8%A1%A5%E4%B8%81%E5%8A%A0%E8%BD%BD%E5%9B%9E%E8%B0%83"><span class="nav-text">2.8 处理补丁加载回调</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-9-%E5%A2%9E%E5%8A%A0%E6%A3%80%E6%9F%A5%E8%A1%A5%E4%B8%81%E6%9B%B4%E6%96%B0%E9%80%BB%E8%BE%91"><span class="nav-text">2.9 增加检查补丁更新逻辑</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E6%9C%80%E5%88%9D%E5%8C%85%EF%BC%88%E5%9F%BA%E7%BA%BF%E5%8C%85%EF%BC%89"><span class="nav-text">打最初包（基线包）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%A4%87%E4%BB%BD%E6%9C%80%E5%88%9D%E5%8C%85"><span class="nav-text">1. 备份最初包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%A7%BB%E5%8A%A8maping-txt"><span class="nav-text">2. 移动maping.txt</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BF%AE%E6%94%B9%E6%B7%B7%E6%B7%86%E6%96%87%E4%BB%B6"><span class="nav-text">3. 修改混淆文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E6%AC%A1%E7%83%AD%E6%9B%B4%E6%96%B0-%E4%BF%AE%E6%94%B9%E8%B5%84%E6%BA%90"><span class="nav-text">第一次热更新-修改资源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9B%B4%E6%96%B0%E4%BB%A3%E7%A0%81"><span class="nav-text">1. 更新代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%94%9F%E6%88%90%E8%A1%A5%E4%B8%81"><span class="nav-text">2. 生成补丁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-%E7%94%9F%E6%88%90%E6%96%B0%E5%8C%85"><span class="nav-text">2.1 生成新包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-%E4%B8%8B%E8%BD%BD%E6%89%93%E8%A1%A5%E4%B8%81%E5%B7%A5%E5%85%B7"><span class="nav-text">2.2 下载打补丁工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-%E9%80%89%E6%8B%A9%E5%8C%85"><span class="nav-text">2.3 选择包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-%E8%B0%83%E6%95%B4%E8%AE%BE%E7%BD%AE"><span class="nav-text">2.4 调整设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-5-%E8%B0%83%E6%95%B4%E9%AB%98%E7%BA%A7"><span class="nav-text">2.5 调整高级</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-%E7%94%9F%E6%88%90Patch"><span class="nav-text">2.6 生成Patch</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%B7%BB%E5%8A%A0%E7%89%88%E6%9C%AC"><span class="nav-text">3. 添加版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%8A%E4%BC%A0%E8%A1%A5%E4%B8%81"><span class="nav-text">4. 上传补丁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%9C%AC%E5%9C%B0%E6%B5%8B%E8%AF%95"><span class="nav-text">5. 本地测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E7%81%B0%E5%BA%A6%E6%B5%8B%E8%AF%95"><span class="nav-text">6. 灰度测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E6%AD%A3%E5%BC%8F%E4%B8%8A%E7%BA%BF"><span class="nav-text">7. 正式上线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E7%83%AD%E6%9B%B4%E6%96%B0%E7%BB%93%E6%9E%9C"><span class="nav-text">8. 热更新结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E6%AC%A1%E7%83%AD%E6%9B%B4%E6%96%B0-%E4%BD%BF%E7%94%A8%E5%8D%A0%E4%BD%8DActivity"><span class="nav-text">第二次热更新-使用占位Activity</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9B%B4%E6%96%B0%E4%BB%A3%E7%A0%81-2"><span class="nav-text">1. 更新代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%94%9F%E6%88%90%E8%A1%A5%E4%B8%81%E5%B9%B6%E5%8F%91%E5%B8%83"><span class="nav-text">2. 生成补丁并发布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%83%AD%E6%9B%B4%E6%96%B0%E7%BB%93%E6%9E%9C"><span class="nav-text">3. 热更新结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E6%AC%A1%E7%83%AD%E6%9B%B4%E6%96%B0-%E6%96%B0%E5%A2%9ESo%E5%92%8CStyle"><span class="nav-text">第三次热更新-新增So和Style</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9B%B4%E6%96%B0%E4%BB%A3%E7%A0%81-3"><span class="nav-text">1. 更新代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%94%9F%E6%88%90%E8%A1%A5%E4%B8%81%E5%B9%B6%E5%8F%91%E5%B8%83-2"><span class="nav-text">2. 生成补丁并发布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%83%AD%E6%9B%B4%E6%96%B0%E7%BB%93%E6%9E%9C-2"><span class="nav-text">3. 热更新结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E5%9B%9B%E6%AC%A1%E7%83%AD%E6%9B%B4%E6%96%B0-%E4%BF%AE%E6%94%B9Style"><span class="nav-text">第四次热更新-修改Style</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9B%B4%E6%96%B0%E4%BB%A3%E7%A0%81-4"><span class="nav-text">1. 更新代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%94%9F%E6%88%90%E8%A1%A5%E4%B8%81%E5%B9%B6%E5%8F%91%E5%B8%83-3"><span class="nav-text">2. 生成补丁并发布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%83%AD%E6%9B%B4%E6%96%B0%E7%BB%93%E6%9E%9C-3"><span class="nav-text">3. 热更新结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%BA%94%E6%AC%A1%E7%83%AD%E6%9B%B4%E6%96%B0-%E4%BF%AE%E6%94%B9%E4%B8%BB%E9%A2%98"><span class="nav-text">第五次热更新-修改主题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9B%B4%E6%96%B0%E4%BB%A3%E7%A0%81-5"><span class="nav-text">1. 更新代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%94%9F%E6%88%90%E8%A1%A5%E4%B8%81%E5%B9%B6%E5%8F%91%E5%B8%83-4"><span class="nav-text">2. 生成补丁并发布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%83%AD%E6%9B%B4%E6%96%B0%E7%BB%93%E6%9E%9C-4"><span class="nav-text">3. 热更新结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="张坤"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">张坤</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/TaylorKunZhang" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;TaylorKunZhang" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:TaylorKunZhang@gmail.com" title="E-Mail → mailto:TaylorKunZhang@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张坤</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
